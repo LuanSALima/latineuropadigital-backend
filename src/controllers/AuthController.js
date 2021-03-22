@@ -1,16 +1,11 @@
 let User = require('../schemas/user.schema.js');
 
-const handleErrors = require('../modules/error-handler');
+const handleErrors = require('../helpers/error-handler');
+const Roles = require('../helpers/roles');
 
 const bcrypt = require("bcryptjs"); /*Método de encriptamento da senha*/
-const jwt = require("jsonwebtoken"); /*Método para geração do token de autenticação*/
 
-//Método para gerar o token jwt, necessário passar o id
-function generateToken(id) {
-	return jwt.sign({ id: id }, process.env.JWT_HASH, {
-    	expiresIn: 86400, /*(1 dia)Tempo em segundo para o expiramento do token*/
-    });
-}
+const jwt = require('../helpers/jwt');
 
 class AuthController {
 	async authenticate(request, response) {
@@ -34,7 +29,7 @@ class AuthController {
 				.json({
 					success: true,
 					user,
-					token: generateToken(user._id)
+					token: jwt.generateToken(user._id, user.role)
 				});
 	    } catch (error) {
 	    	return response.status(400).json(handleErrors(error));
@@ -49,7 +44,8 @@ class AuthController {
 				username,
 				email,
 				phone,
-				password
+				password,
+				role: Roles.User
 			});
 
 			return response

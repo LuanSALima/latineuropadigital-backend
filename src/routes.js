@@ -3,7 +3,8 @@ const router = require('express').Router();
 const AuthController = require('./controllers/AuthController');
 const UserController = require('./controllers/UserController');
 
-const authMiddleware = require('./middlewares/auth');
+const Role = require('./helpers/roles');
+const authorized = require('./middlewares/authorize');
 
 router.post("/auth/authenticate", AuthController.authenticate);
 router.post("/auth/signup", AuthController.signUp);
@@ -15,7 +16,7 @@ router.delete("/user/:id", UserController.delete);
 
 router.route('/auth/testAuthMiddleware')
 	.get(
-		authMiddleware, 
+		authorized(Role.Admin), 
 		(request, response) => {
 			response.status(200).json({
 				success: true,

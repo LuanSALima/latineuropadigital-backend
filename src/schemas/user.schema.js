@@ -44,6 +44,10 @@ const userSchema = new Schema({
 	        },
 	        message: "Password is not strong enough"
 	    }
+	},
+	role: {
+		type: String,
+		required: [true, "É necessário informar o tipo de Usuário"]
 	}
 }, {
 	timestamps: true,
