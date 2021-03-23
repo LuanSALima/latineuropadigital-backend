@@ -2,6 +2,11 @@ const handleError = (error) => {
   let message = "Ocorreu um erro inesperado";
   let errors = {};
 
+  if(error.name === "CastError") {
+    message = "ID inválido";
+    errors = undefined;
+  }
+
   if (error.name === "ValidationError") {
     message = undefined;
 
@@ -14,8 +19,6 @@ const handleError = (error) => {
     message = undefined;
 
     errors[Object.keys(error.keyValue)] = Object.keys(error.keyValue)+" já cadastrado";
-
-    console.log(error);
   }
 
   if (error.name === "Error") {
