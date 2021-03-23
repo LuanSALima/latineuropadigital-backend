@@ -17,7 +17,11 @@ const postSchema = new Schema({
 		type: String,
 		required: [true, 'É necessário informar a descrição'],
 		trim: true
-	}
+	},
+	tags: [{
+	    type: String,
+	    required: [true, 'É necessário informar as tags da publicação'] /*Não está funcionando*/
+	}]
 }, {
 	timestamps: true,
 });

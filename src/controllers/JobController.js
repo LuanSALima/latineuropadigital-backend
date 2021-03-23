@@ -1,4 +1,5 @@
 let Job = require('../schemas/job.schema');
+let User = require('../schemas/user.schema');
 
 const handleErrors = require('../helpers/error-handler');
 
@@ -24,14 +25,17 @@ class JobController {
 		try {
 			const { title, description } = request.body;
 
-			const owner = request.user.id;
+			const userLogged = await User.findById(request.user.id);
 
-			if(!owner) {
+			if(!userLogged) {
 				throw new Error("É necessário estar logado para saber a quem pertence este Trabalho");
 			}
 
 			const job = await Job.create({
-				owner,
+				owner:{
+					id: userLogged._id,
+					username: userLogged.username
+				},
 				title,
 				description
 			});
@@ -79,7 +83,7 @@ class JobController {
 				throw new Error("Publicação não encontrada");
 			}
 
-			if(job.owner !== userLogged) {
+			if(job.owner.id !== userLogged) {
 				throw new Error("Este trabalho não pertence a você");
 			}
 
@@ -111,7 +115,7 @@ class JobController {
 		        throw new Error("Trabalho não Encontrado");
 		    }
 
-		    if(job.owner !== userLogged) {
+		    if(job.owner.id !== userLogged) {
 				throw new Error("Este trabalho não pertence a você");
 			}
 

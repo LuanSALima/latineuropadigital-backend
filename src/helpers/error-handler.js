@@ -4,7 +4,7 @@ const handleError = (error) => {
 
   if(error.name === "CastError") {
     message = "ID inválido";
-    errors=undefined;
+    errors = undefined;
   }
 
   if (error.name === "ValidationError") {
@@ -19,8 +19,6 @@ const handleError = (error) => {
     message = undefined;
 
     errors[Object.keys(error.keyValue)] = Object.keys(error.keyValue)+" já cadastrado";
-
-    console.log(error);
   }
 
   if (error.name === "Error") {

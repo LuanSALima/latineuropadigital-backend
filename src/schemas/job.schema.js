@@ -5,8 +5,14 @@ const Schema = mongoose.Schema;
 
 const jobSchema = new Schema({
 	owner: {
-		type: String,
-		required: [true, 'É necessário informar a quem pertence este Trabalho'],
+		id: {
+			type: String,
+			required: [true, 'É necessário informar a quem pertence este Trabalho'],
+		},
+		username: {
+			type: String,
+			required: [true, 'É necessário informar o nome do dono este Trabalho'],
+		}
 	},
 	title: {
 		type: String,

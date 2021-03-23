@@ -4,6 +4,7 @@ const AuthController = require('./controllers/AuthController');
 const UserController = require('./controllers/UserController');
 const PostController = require('./controllers/PostController');
 const JobController = require('./controllers/JobController');
+const TagsController = require('./controllers/TagsController');
 
 const Role = require('./helpers/roles');
 const authorized = require('./middlewares/authorize');
@@ -28,6 +29,13 @@ router.get("/job/:id", JobController.find);
 router.post("/job/create", authorized(), JobController.create);
 router.put("/job/:id", authorized(), JobController.update);
 router.delete("/job/:id", authorized(), JobController.delete);
+
+router.get("/tags/list", TagsController.list);
+router.get("/tag/:id", TagsController.find);
+router.post("/tags/create", TagsController.create);
+router.put("/tags/:id", TagsController.update);
+router.delete("/tags/:id", TagsController.delete);
+router.get("/tags/wipe", TagsController.deleteAll);
 
 router.route('/auth/testAuthMiddleware')
 	.get(

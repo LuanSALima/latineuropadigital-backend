@@ -1,4 +1,5 @@
 let Post = require('../schemas/post.schema');
+let Tags = require('../schemas/tags.schema');
 
 const handleErrors = require('../helpers/error-handler');
 
@@ -22,7 +23,7 @@ class PostController {
 
 	async create(request, response) {
 		try {
-			const { title, description } = request.body;
+			const { title, description, tags } = request.body;
 
 			const owner = request.user.id;
 
@@ -30,11 +31,23 @@ class PostController {
 				throw new Error("É necessário estar logado para saber a quem pertence este Post");
 			}
 
+			tags.forEach(async (tag) => {
+				if(await Tags.exists({title: tag})) {
+					//Tag Existe
+				} else {
+					//Tag não existe
+					await Tags.create({title: tag});
+				}
+			});
+
+			
 			const post = await Post.create({
 				owner,
 				title,
-				description
+				description,
+				tags
 			});
+			
 
 			return response.status(200).json({
 				success: true,
