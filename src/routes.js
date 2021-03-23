@@ -3,6 +3,7 @@ const router = require('express').Router();
 const AuthController = require('./controllers/AuthController');
 const UserController = require('./controllers/UserController');
 const PostController = require('./controllers/PostController');
+const JobController = require('./controllers/JobController');
 
 const Role = require('./helpers/roles');
 const authorized = require('./middlewares/authorize');
@@ -21,6 +22,12 @@ router.get("/post/:id", PostController.find);
 router.post("/post/create", authorized(Role.Admin), PostController.create);
 router.put("/post/:id", authorized(Role.Admin), PostController.update);
 router.delete("/post/:id", authorized(Role.Admin), PostController.delete);
+
+router.get("/job/list", JobController.list);
+router.get("/job/:id", JobController.find);
+router.post("/job/create", authorized(), JobController.create);
+router.put("/job/:id", authorized(), JobController.update);
+router.delete("/job/:id", authorized(), JobController.delete);
 
 router.route('/auth/testAuthMiddleware')
 	.get(
