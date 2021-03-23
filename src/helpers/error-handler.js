@@ -2,6 +2,13 @@ const handleError = (error) => {
   let message = "Ocorreu um erro inesperado";
   let errors = {};
 
+  console.log(error);
+
+  if(error.name === "CastError") {
+    message = "ID inválido";
+    errors=undefined;
+  }
+
   if (error.name === "ValidationError") {
     message = undefined;
 

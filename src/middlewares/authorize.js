@@ -13,13 +13,12 @@ module.exports = (roles = []) => {
 	    		if(jwt.checkToken(request)) {
 	    			if(roles.length && !roles.includes(request.user.role)) {
 		    			// user's role is not authorized
-	                	return response.status(401).json({ success: false, message: 'Unauthorized' });
+	                	return response.status(401).json({ success: false, message: 'Você não possui permissão para acessar esta função' });
 		    		}
-
 		    		// authentication and authorization successful
             		next();
 	    		} else {
-	    			return response.status(401).json({success: false, message: "Token Invalid"});
+	    			return response.status(401).json({success: false, message: "É necessário estar logado para realizar esta função"});
 	    		}
 	    	}
 	    ];

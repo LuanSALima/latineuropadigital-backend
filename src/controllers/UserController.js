@@ -21,6 +21,28 @@ class UserController {
 	    }
 	}
 
+	async create(request, response) {
+		try {
+			const { username, email, phone, password } = request.body;
+
+			const user = await User.create({
+				username,
+				email,
+				phone,
+				password,
+				role: "Admin"
+			});
+
+			return response
+				.status(200)
+				.json({
+					success: true
+				});
+		} catch (error) {
+			return response.status(400).json(handleErrors(error));
+		}
+	}
+
 	async find (request, response) {
 		try {
 			const user = await User.findById(request.params.id);
