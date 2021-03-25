@@ -129,6 +129,19 @@ class JobController {
 			return response.status(400).json(handleErrors(error));
 		}
 	}
+
+	async deleteAll(request, response) {
+		try {
+			await Job.deleteMany();
+      
+			return response.status(200).json({
+				success: true,
+				message: "Todas as oportunidades foram deletadas"
+			});
+		} catch (error) {
+			return response.status(400).json(handleErrors(error));
+		}
+	}
 }
 
 module.exports = new JobController();

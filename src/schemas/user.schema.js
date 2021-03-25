@@ -37,6 +37,7 @@ const userSchema = new Schema({
 		trim: true,
 		minlength: 3,
 		select: false,
+		/*
 		validate: {
 	        validator: (value) => {
 	          //Password possui pelo menos 1 numero, 1 letra minúscula, 1 letra maiúscula, 1 caracter especial e no minimo de 8 caracteres 
@@ -44,10 +45,15 @@ const userSchema = new Schema({
 	        },
 	        message: "Senha muito fraca"
 	    }
+	    */
 	},
 	role: {
 		type: String,
 		required: [true, "É necessário informar o tipo de Usuário"]
+	},
+	isProfessional: {
+		type: String,
+		default: "false"
 	}
 }, {
 	timestamps: true,
