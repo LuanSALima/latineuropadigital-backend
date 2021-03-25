@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
 
+const fileSystem = require('fs');
+
 const Schema = mongoose.Schema;
 
 const postSchema = new Schema({
@@ -28,6 +30,11 @@ const postSchema = new Schema({
 	}
 }, {
 	timestamps: true,
+});
+
+postSchema.pre("remove", async function (next) {
+  fileSystem.unlinkSync(__basedir+"/public"+this.imagePath);
+  next();
 });
 
 const Post = mongoose.model('Post', postSchema);

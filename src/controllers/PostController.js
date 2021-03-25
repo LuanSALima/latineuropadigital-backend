@@ -139,28 +139,17 @@ class PostController {
 
 	async delete(request, response) {
 		try {
-			const post = await Post.findByIdAndDelete(request.params.id);
+			const post = await Post.findById(request.params.id);
 			
 			if (!post) {
 		        throw new Error("Publicação Não Existe!");
 		    }
 
+		    await post.remove();
+
 			return response.json({
 				success: true,
 				message: 'Publicação deletada'
-			});
-		} catch (error) {
-			return response.status(400).json(handleErrors(error));
-		}
-	}
-
-	async deleteAll(request, response) {
-		try {
-			await Post.deleteMany();
-      
-			return response.status(200).json({
-				success: true,
-				message: "Todas os posts foram deletados"
 			});
 		} catch (error) {
 			return response.status(400).json(handleErrors(error));
