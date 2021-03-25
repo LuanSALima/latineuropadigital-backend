@@ -23,7 +23,7 @@ router.get("/post/:id", PostController.find);
 router.post("/post/create", authorized(Role.Admin), PostController.create);
 router.put("/post/:id", authorized(Role.Admin), PostController.update);
 router.delete("/post/:id", authorized(Role.Admin), PostController.delete);
-router.get("/posts/wipe", PostController.deleteAll);
+//router.get("/posts/wipe", PostController.deleteAll);
 
 router.get("/job/list", JobController.list);
 router.get("/job/:id", JobController.find);
