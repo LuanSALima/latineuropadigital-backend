@@ -3,7 +3,7 @@ const handleError = (error) => {
   let errors = {};
 
   if(error.name === "CastError") {
-    message = "ID inválido";
+    message = "ID buscado é inválido";
     errors = undefined;
   }
 
@@ -25,6 +25,11 @@ const handleError = (error) => {
     errors = undefined;
 
     message = error.message;
+  }
+
+  if(message === "Ocorreu um erro inesperado"){
+    console.log("====Ocorreu um Erro====");
+    console.log(error);
   }
 
   return {
