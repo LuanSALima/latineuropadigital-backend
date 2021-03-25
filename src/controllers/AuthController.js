@@ -38,14 +38,15 @@ class AuthController {
 
 	async signUp(request, response) {
 		try {
-			const { username, email, phone, password } = request.body;
+			const { username, email, phone, password, professional } = request.body;
 
 			const user = await User.create({
 				username,
 				email,
 				phone,
 				password,
-				role: Roles.User
+				role: Roles.User,
+				isProfessional: professional.toString()
 			});
 
 			return response
@@ -53,6 +54,7 @@ class AuthController {
 				.json({
 					success: true
 				});
+			
 		} catch (error) {
 			return response.status(400).json(handleErrors(error));
 		}

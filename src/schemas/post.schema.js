@@ -18,10 +18,14 @@ const postSchema = new Schema({
 		required: [true, 'É necessário informar a descrição'],
 		trim: true
 	},
-	tags: [{
-	    type: String,
-	    required: [true, 'É necessário informar as tags da publicação'] /*Não está funcionando*/
-	}]
+	imagePath: {
+		type: String,
+		required: [true, 'É necessário cadastrar uma imagem']
+	},
+	tags: {
+		type: [String],
+		required: [true, 'É necessário informar as tags']
+	}
 }, {
 	timestamps: true,
 });

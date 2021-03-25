@@ -2,13 +2,21 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 
+const fileUpload = require('express-fileupload');
+
 require('dotenv').config();
 
 const app = express();
 const port = process.env.port || 5000;
 
+//assigning a variable that is the root path of the project
+global.__basedir = __dirname;
+
 app.use(cors());
 app.use(express.json());
+
+app.use(fileUpload());
+app.use(express.static('public'))
 
 const uri = process.env.MONGO_URL;
 mongoose.connect(uri, { useNewUrlParser: true, useCreateIndex: true, useUnifiedTopology: true})
