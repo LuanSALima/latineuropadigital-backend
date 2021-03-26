@@ -45,8 +45,7 @@ class AuthController {
 				email,
 				phone,
 				password,
-				role: Roles.User,
-				isProfessional: professional.toString()
+				role: Roles.User
 			});
 
 			return response

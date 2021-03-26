@@ -24,19 +24,21 @@ router.post("/post/create", authorized(Role.Admin), PostController.create);
 router.put("/post/:id", authorized(Role.Admin), PostController.update);
 router.delete("/post/:id", authorized(Role.Admin), PostController.delete);
 
+router.get("/posts/:tag", PostController.findByTag);
+
 router.get("/job/list", JobController.list);
 router.get("/job/:id", JobController.find);
-router.post("/job/create", authorized(), JobController.create);
-router.put("/job/:id", authorized(), JobController.update);
-router.delete("/job/:id", authorized(), JobController.delete);
+router.post("/job/create", authorized(Role.Admin), JobController.create);
+router.put("/job/:id", authorized(Role.Admin), JobController.update);
+router.delete("/job/:id", authorized(Role.Admin), JobController.delete);
 //router.get("/jobs/wipe", JobController.deleteAll);
 
-router.get("/tags/list", TagsController.list);
+router.get("/tag/list", TagsController.list);
 router.get("/tag/:id", TagsController.find);
-router.post("/tags/create", TagsController.create);
-router.put("/tags/:id", TagsController.update);
-router.delete("/tags/:id", TagsController.delete);
-router.get("/tags/wipe", TagsController.deleteAll);
+router.post("/tag/create", TagsController.create);
+router.put("/tag/:id", TagsController.update);
+router.delete("/tag/:id", TagsController.delete);
+//router.get("/tags/wipe", TagsController.deleteAll);
 
 router.route('/auth/testAuthMiddleware')
 	.get(

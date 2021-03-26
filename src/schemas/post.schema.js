@@ -27,14 +27,23 @@ const postSchema = new Schema({
 	tags: {
 		type: [String],
 		required: [true, 'É necessário informar as tags']
+	},
+	views: {
+		type: Number,
+		default: 0
 	}
 }, {
 	timestamps: true,
 });
 
 postSchema.pre("remove", async function (next) {
-  fileSystem.unlinkSync(__basedir+"/public"+this.imagePath);
-  next();
+	try {
+		fileSystem.unlinkSync(__basedir+"/public"+this.imagePath);
+	} catch (error) {
+		//Erro ao excluir a imagem
+		console.log(error);
+	}
+  	next();
 });
 
 const Post = mongoose.model('Post', postSchema);

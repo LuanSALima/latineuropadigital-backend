@@ -50,10 +50,6 @@ const userSchema = new Schema({
 	role: {
 		type: String,
 		required: [true, "É necessário informar o tipo de Usuário"]
-	},
-	isProfessional: {
-		type: String,
-		default: "false"
 	}
 }, {
 	timestamps: true,

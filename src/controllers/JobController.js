@@ -23,19 +23,11 @@ class JobController {
 
 	async create(request, response) {
 		try {
-			const { title, description } = request.body;
-
-			const userLogged = await User.findById(request.user.id);
-
-			if(!userLogged) {
-				throw new Error("É necessário estar logado para saber a quem pertence este Trabalho");
-			}
+			const { professionalName, professionalContact, title, description } = request.body;
 
 			const job = await Job.create({
-				owner:{
-					id: userLogged._id,
-					username: userLogged.username
-				},
+				professionalName,
+				professionalContact,
 				title,
 				description
 			});
@@ -69,13 +61,7 @@ class JobController {
 
 	async update(request, response) {
 		try {
-			const { title, description } = request.body;
-
-			const userLogged = request.user.id;
-
-			if(!userLogged) {
-				throw new Error("É necessário estar logado para alterar seu Trabalho");
-			}
+			const { professionalName, professionalContact, title, description } = request.body;
 
 			const job = await Job.findById(request.params.id);
 
@@ -83,10 +69,8 @@ class JobController {
 				throw new Error("Publicação não encontrada");
 			}
 
-			if(job.owner.id !== userLogged) {
-				throw new Error("Este trabalho não pertence a você");
-			}
-
+			job.professionalName = professionalName;
+			job.professionalContact = professionalContact;
 			job.title = title;
 			job.description = description;
 
@@ -103,21 +87,12 @@ class JobController {
 
 	async delete(request, response) {
 		try {
-			const userLogged = request.user.id;
-
-			if(!userLogged) {
-				throw new Error("É necessário estar logado para alterar seu Trabalho");
-			}
 
 			const job = await Job.findById(request.params.id);
 			
 			if (!job) {
 		        throw new Error("Trabalho não Encontrado");
 		    }
-
-		    if(job.owner.id !== userLogged) {
-				throw new Error("Este trabalho não pertence a você");
-			}
 
 			await job.remove();
 

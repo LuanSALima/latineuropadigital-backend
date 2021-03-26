@@ -3,6 +3,9 @@ let Tags = require('../schemas/tags.schema');
 
 const handleErrors = require('../helpers/error-handler');
 
+const jwt = require('../helpers/jwt');
+const Roles = require('../helpers/roles');
+
 class PostController {
 	async list(request, response) {
 		try {
@@ -11,6 +14,33 @@ class PostController {
 			if (posts.length === 0) {
 		        throw new Error("Não há Publicações Cadastradas no Banco de Dados!");
 		    }
+
+			return response.status(200).json({
+				success: true,
+				posts
+			});
+		} catch (error) {
+			return response.status(400).json(handleErrors(error));
+		}
+	}
+
+	async findByTag(request, response) {
+		try {
+			const tag = request.params.tag;
+
+			if(!tag) {
+				throw new Error("Tag buscada não especificada");
+			}
+
+			if(await Tags.exists({title: { '$regex' : tag, '$options' : 'i' }})) {
+				//Tag Existe
+			} else {
+				//Tag não existe
+				throw new Error("Esta tag não existe");
+			}
+
+			//Tags são cadastradas com acentos e na busca deve ser escrito com acento também
+			const posts = await Post.find({tags: { '$regex' : tag, '$options' : 'i' }});
 
 			return response.status(200).json({
 				success: true,
@@ -71,7 +101,6 @@ class PostController {
 		    //move the image to the path 'imagePath'
 		    image.mv(imagePath, function (err) {
 		        if (err) {
-		            console.log(err);
 		            throw new Error("Ocorreu um erro ao cadastrar a imagem");
 		        }
 		    });
@@ -102,6 +131,12 @@ class PostController {
 
 			if (!post) {
 				throw new Error("Publicação não encontrada");
+			}
+
+			//Se não estiver logado
+			if(!jwt.checkToken(request)) {
+				post.views = post.views + 1;
+				post.save();
 			}
 
 			return response.json({

@@ -4,15 +4,15 @@ const validator = require('validator');
 const Schema = mongoose.Schema;
 
 const jobSchema = new Schema({
-	owner: {
-		id: {
-			type: String,
-			required: [true, 'É necessário informar a quem pertence este Trabalho'],
-		},
-		username: {
-			type: String,
-			required: [true, 'É necessário informar o nome do dono este Trabalho'],
-		}
+	professionalName: {
+		type: String,
+		required: [true, 'É necessário informar o nome do profissional'],
+		trim: true,
+	},
+	professionalContact: {
+		type: String,
+		required: [true, 'É necessário informar os contatos do profissional'],
+		trim: true,
 	},
 	title: {
 		type: String,

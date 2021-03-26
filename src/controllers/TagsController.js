@@ -5,7 +5,7 @@ const handleErrors = require('../helpers/error-handler');
 class TagsController {
 	async list(request, response) {
 		try {
-			const tags = await Tags.find({}, {_id: 0, title: 1});
+			const tags = await Tags.find({}, {_id: 1, title: 1});
 
 			if (tags.length === 0) {
 		        throw new Error("Não há Tags Cadastradas no Banco de Dados!");
