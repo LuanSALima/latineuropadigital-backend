@@ -80,19 +80,30 @@ class UserController {
 
 	async update (request, response) {
 		try {
-			const { username, email, password } = request.body;
+			const { username, email, phone, password } = request.body;
 
-			const user = await User.findById(request.params.id);
+			const user = await User.findById(request.params.id).select("+password");
 
 			if (!user) {
 				throw new Error("Usuário não encontrado");
 			}
 
-			user.username = username;
-			user.email = email;
-			user.password = password;
+			if(password) {
+				user.username = username;
+				user.email = email;
+				user.phone = phone;
+				user.password = password;
 
-			await user.save();
+				await user.save();
+			} else {
+				await User.findByIdAndUpdate(user.id, {
+		  			'$set': {
+		  				username,
+		  				email,
+		  				phone
+		  			}
+		  		});
+			}
 				
 			return response.json({
 				success: true,

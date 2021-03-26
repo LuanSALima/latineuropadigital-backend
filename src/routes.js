@@ -14,7 +14,7 @@ router.post("/auth/signup", AuthController.signUp);
 
 router.get("/user/list", UserController.getAllUsers);
 router.get("/user/:id", UserController.find);
-router.put("/user/update/:id", UserController.update);
+router.put("/user/:id", UserController.update);
 router.delete("/user/:id", UserController.delete);
 router.post("/user/addAdmin", UserController.create); /*Única forma de criar um usuário ADM*/
 
