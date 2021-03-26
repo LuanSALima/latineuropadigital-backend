@@ -40,6 +40,8 @@ router.put("/tag/:id", TagsController.update);
 router.delete("/tag/:id", TagsController.delete);
 //router.get("/tags/wipe", TagsController.deleteAll);
 
+router.get("/tags/used", TagsController.tagsUsed);
+
 router.route('/auth/testAuthMiddleware')
 	.get(
 		authorized(Role.Admin), 

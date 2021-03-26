@@ -8,6 +8,11 @@ const tagSchema = new Schema({
 		type: String,
 		required: [true, 'É necessário informar o nome da Tag'],
 		trim: true,
+	},
+	description: {
+		type: String,
+		required: [true, 'É necessário informar a descrição da Tag'],
+		trim: true,
 	}
 });
 

@@ -86,6 +86,21 @@ class PostController {
 				tags = new Array(tags);
 			}
 
+			let tagsNotFound = [];
+
+			for (const tag of tags) {
+				if(await Tags.exists({title: tag})) {
+					//Tag Existe
+				} else {
+					//Tag Não Existe
+					tagsNotFound.push(tag);
+				}
+			}
+
+			if(tagsNotFound.length) {
+				throw new Error("Tags: "+tagsNotFound.toString()+" não existem");
+			}
+
 		    //__basedir is a Global Variable that we assigned at our server.js that return the root path of the project
 		    const imageName = `${Date.now()}-${image.name}`;
 		    const imagePath = `${__basedir}/public/posts/${imageName}`;
@@ -104,16 +119,6 @@ class PostController {
 		            throw new Error("Ocorreu um erro ao cadastrar a imagem");
 		        }
 		    });
-
-			tags.forEach(async (tag) => {
-				if(await Tags.exists({title: tag})) {
-					//Tag Existe
-				} else {
-					//Tag não existe
-					await Tags.create({title: tag});
-				}
-			});
-			
 
 			return response.status(200).json({
 				success: true,
