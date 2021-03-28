@@ -10,7 +10,7 @@ const Role = require('./helpers/roles');
 const authorized = require('./middlewares/authorize');
 
 router.post("/auth/authenticate", AuthController.authenticate);
-router.post("/auth/signup", AuthController.signUp);
+//router.post("/auth/signup", AuthController.signUp);
 
 router.get("/user/list", UserController.getAllUsers);
 router.get("/user/:id", UserController.find);
@@ -28,9 +28,12 @@ router.get("/posts/:tag", PostController.findByTag);
 
 router.get("/job/list", JobController.list);
 router.get("/job/:id", JobController.find);
-router.post("/job/create", authorized(Role.Admin), JobController.create);
+router.post("/job/create", JobController.create);
 router.put("/job/:id", authorized(Role.Admin), JobController.update);
 router.delete("/job/:id", authorized(Role.Admin), JobController.delete);
+
+router.get("/jobs/all", authorized(Role.Admin), JobController.listAll);
+router.get("/jobs/:status", authorized(Role.Admin), JobController.listByStatus);
 //router.get("/jobs/wipe", JobController.deleteAll);
 
 router.get("/tag/list", TagsController.list);
@@ -42,15 +45,5 @@ router.delete("/tag/:id", TagsController.delete);
 
 router.get("/tags/used", TagsController.tagsUsed);
 
-router.route('/auth/testAuthMiddleware')
-	.get(
-		authorized(Role.Admin), 
-		(request, response) => {
-			response.status(200).json({
-				success: true,
-				message: 'Rota acessada!'
-			});
-		}
-	);
 
 module.exports = router;

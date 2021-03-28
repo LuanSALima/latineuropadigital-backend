@@ -37,12 +37,7 @@ const postSchema = new Schema({
 });
 
 postSchema.pre("remove", async function (next) {
-	try {
-		fileSystem.unlinkSync(__basedir+"/public"+this.imagePath);
-	} catch (error) {
-		//Erro ao excluir a imagem
-		console.log(error);
-	}
+	fileSystem.unlinkSync(__basedir+"/public"+this.imagePath);
   	next();
 });
 

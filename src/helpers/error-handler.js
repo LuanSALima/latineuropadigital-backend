@@ -27,6 +27,11 @@ const handleError = (error) => {
     message = error.message;
   }
 
+  if(error.code === 'ENOENT') {
+    message = "Não foi possível excluir pois não foi encontrada a imagem que será deletada!";
+    errors = undefined;
+  }
+
   if(message === "Ocorreu um erro inesperado"){
     console.log("====Ocorreu um Erro====");
     console.log(error);
