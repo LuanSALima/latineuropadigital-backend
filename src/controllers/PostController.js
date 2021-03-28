@@ -103,12 +103,12 @@ class PostController {
 
 		    //__basedir is a Global Variable that we assigned at our server.js that return the root path of the project
 		    const imageName = `${Date.now()}-${image.name}`;
-		    const imagePath = `${__basedir}/public/posts/${imageName}`;
+		    const imagePath = `${__basedir}/public/images/posts/${imageName}`;
 
 			const post = await Post.create({
 				owner,
 				title,
-				imagePath: '/posts/'+imageName,
+				imagePath: '/images/posts/'+imageName,
 				description,
 				tags
 			});
