@@ -5,6 +5,7 @@ const UserController = require('./controllers/UserController');
 const PostController = require('./controllers/PostController');
 const JobController = require('./controllers/JobController');
 const TagsController = require('./controllers/TagsController');
+const NoticeController = require('./controllers/NoticeController');
 
 const Role = require('./helpers/roles');
 const authorized = require('./middlewares/authorize');
@@ -23,8 +24,14 @@ router.get("/post/:id", PostController.find);
 router.post("/post/create", authorized(Role.Admin), PostController.create);
 router.put("/post/:id", authorized(Role.Admin), PostController.update);
 router.delete("/post/:id", authorized(Role.Admin), PostController.delete);
-
 router.get("/posts/:tag", PostController.findByTag);
+
+router.get("/notice/list", NoticeController.list);
+router.get("/notice/:id", NoticeController.find);
+router.post("/notice/create", authorized(Role.Admin), NoticeController.create);
+router.put("/notice/:id", authorized(Role.Admin), NoticeController.update);
+router.delete("/notice/:id", authorized(Role.Admin), NoticeController.delete);
+router.get("/notices/tags", NoticeController.tagsUsed);
 
 router.get("/job/list", JobController.list);
 router.get("/job/:id", JobController.find);
@@ -43,7 +50,8 @@ router.put("/tag/:id", TagsController.update);
 router.delete("/tag/:id", TagsController.delete);
 //router.get("/tags/wipe", TagsController.deleteAll);
 
-router.get("/tags/used", TagsController.tagsUsed);
-
+router.use("/", (req, res, next) => {
+  res.status("404").json({success: false, message: "Route not found"});
+});
 
 module.exports = router;

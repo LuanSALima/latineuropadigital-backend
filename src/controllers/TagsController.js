@@ -113,28 +113,6 @@ class TagsController {
 			return response.status(400).json(handleErrors(error));
 		}
 	}
-
-	async tagsUsed(request, response) {
-		try {
-			const allTags = await Tags.find({}, {_id: 1, title: 1, description: 1});
-
-			const usedTags = new Array();
-			
-			for(const tag of allTags) {
-				if(await Post.exists({tags: { '$regex' : tag.title, '$options' : 'i' }})) {
-					usedTags.push(tag);
-				}
-			}
-
-			return response.status(200).json({
-				success: true,
-				tags: usedTags
-			});
-			
-		} catch (error) {
-			return response.status(400).json(handleErrors(error));
-		}
-	}
 }
 
 module.exports = new TagsController();
