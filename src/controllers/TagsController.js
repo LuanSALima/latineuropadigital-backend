@@ -1,5 +1,4 @@
 let Tags = require('../schemas/tags.schema');
-let Post = require('../schemas/post.schema');
 
 const handleErrors = require('../helpers/error-handler');
 

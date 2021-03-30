@@ -1,3 +1,8 @@
+function ValidationError() {
+	this.name = "ValidationError";
+}
+ValidationError.prototype = Error.prototype;
+
 module.exports.validateImage = (file) => {
 	if(!file){
 		throw new Error("É necessário cadastrar uma imagem");

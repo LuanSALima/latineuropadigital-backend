@@ -2,10 +2,10 @@ const router = require('express').Router();
 
 const AuthController = require('./controllers/AuthController');
 const UserController = require('./controllers/UserController');
-const PostController = require('./controllers/PostController');
 const JobController = require('./controllers/JobController');
 const TagsController = require('./controllers/TagsController');
 const NoticeController = require('./controllers/NoticeController');
+const DirectoryController = require('./controllers/DirectoryController');
 
 const Role = require('./helpers/roles');
 const authorized = require('./middlewares/authorize');
@@ -19,19 +19,19 @@ router.put("/user/:id", UserController.update);
 router.delete("/user/:id", UserController.delete);
 router.post("/user/addAdmin", UserController.create); /*Única forma de criar um usuário ADM*/
 
-router.get("/post/list", PostController.list);
-router.get("/post/:id", PostController.find);
-router.post("/post/create", authorized(Role.Admin), PostController.create);
-router.put("/post/:id", authorized(Role.Admin), PostController.update);
-router.delete("/post/:id", authorized(Role.Admin), PostController.delete);
-router.get("/posts/:tag", PostController.findByTag);
-
 router.get("/notice/list", NoticeController.list);
 router.get("/notice/:id", NoticeController.find);
 router.post("/notice/create", authorized(Role.Admin), NoticeController.create);
 router.put("/notice/:id", authorized(Role.Admin), NoticeController.update);
 router.delete("/notice/:id", authorized(Role.Admin), NoticeController.delete);
 router.get("/notices/tags", NoticeController.tagsUsed);
+
+router.get("/directory/list", DirectoryController.list);
+router.get("/directory/:id", DirectoryController.find);
+router.post("/directory/create", authorized(Role.Admin), DirectoryController.create);
+router.put("/directory/:id", authorized(Role.Admin), DirectoryController.update);
+router.delete("/directory/:id", authorized(Role.Admin), DirectoryController.delete);
+router.get("/directories/tags", DirectoryController.tagsUsed);
 
 router.get("/job/list", JobController.list);
 router.get("/job/:id", JobController.find);
@@ -45,9 +45,9 @@ router.get("/jobs/:status", authorized(Role.Admin), JobController.listByStatus);
 
 router.get("/tag/list", TagsController.list);
 router.get("/tag/:id", TagsController.find);
-router.post("/tag/create", TagsController.create);
-router.put("/tag/:id", TagsController.update);
-router.delete("/tag/:id", TagsController.delete);
+router.post("/tag/create", authorized(Role.Admin), TagsController.create);
+router.put("/tag/:id", authorized(Role.Admin), TagsController.update);
+router.delete("/tag/:id", authorized(Role.Admin), TagsController.delete);
 //router.get("/tags/wipe", TagsController.deleteAll);
 
 router.use("/", (req, res, next) => {

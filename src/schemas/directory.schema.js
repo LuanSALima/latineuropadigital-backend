@@ -5,28 +5,28 @@ const fileSystem = require('fs');
 
 const Schema = mongoose.Schema;
 
-const postSchema = new Schema({
+const directorySchema = new Schema({
 	owner: {
 		type: String,
-		required: [true, 'É necessário informar a quem pertence esta publicação'],
+		required: [true, 'É necessário informar quem publicou esta Notícia'],
 	},
 	title: {
 		type: String,
-		required: [true, 'É necessário informar o título'],
+		required: [true, 'É necessário informar o título da Notícia'],
 		trim: true,
 	},
 	description: {
 		type: String,
-		required: [true, 'É necessário informar a descrição'],
+		required: [true, 'É necessário informar a descrição da Notícia'],
 		trim: true
 	},
 	imagePath: {
 		type: String,
-		required: [true, 'É necessário cadastrar uma imagem']
+		required: [true, 'É necessário cadastrar uma imagem da Notícia']
 	},
 	tags: {
 		type: [String],
-		required: [true, 'É necessário informar as tags']
+		required: [true, 'É necessário informar as tags da Notícia']
 	},
 	views: {
 		type: Number,
@@ -36,7 +36,7 @@ const postSchema = new Schema({
 	timestamps: true,
 });
 
-postSchema.pre("remove", async function (next) {
+directorySchema.pre("remove", async function (next) {
 	/*
 	fileSystem.unlinkSync(__basedir+"/public"+this.imagePath);
 	next();
@@ -49,6 +49,6 @@ postSchema.pre("remove", async function (next) {
   	next();
 });
 
-const Post = mongoose.model('Post', postSchema);
+const Directory = mongoose.model('Directory', directorySchema);
 
-module.exports = Post;
+module.exports = Directory;
