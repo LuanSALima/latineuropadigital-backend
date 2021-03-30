@@ -5,7 +5,6 @@ const handleErrors = require('../helpers/error-handler');
 const validation = require('../helpers/validation');
 
 const jwt = require('../helpers/jwt');
-const Roles = require('../helpers/roles');
 
 const fileSystem = require('fs');
 

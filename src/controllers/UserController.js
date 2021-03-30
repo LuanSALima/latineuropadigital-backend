@@ -2,8 +2,6 @@ let User = require('../schemas/user.schema.js');
 
 const handleErrors = require('../helpers/error-handler');
 
-const bcrypt = require("bcryptjs"); /*Método de encriptamento da senha*/
-
 class UserController {
 	async getAllUsers(request, response) {
 		try {

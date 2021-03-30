@@ -1,4 +1,4 @@
-let Directory = require('../schemas/directory.schema');
+let Event = require('../schemas/event.schema');
 let Tags = require('../schemas/tags.schema');
 
 const handleErrors = require('../helpers/error-handler');
@@ -8,18 +8,18 @@ const jwt = require('../helpers/jwt');
 
 const fileSystem = require('fs');
 
-class DirectoryController {
+class EventController {
 	async list(request, response) {
 		try {
-			const directories = await Directory.find();
+			const events = await Event.find();
 
-			if (directories.length === 0) {
-		        throw new Error("Não há Diretórios Cadastradas no Banco de Dados!");
+			if (events.length === 0) {
+		        throw new Error("Não há Eventos Cadastradas no Banco de Dados!");
 		    }
 
 			return response.status(200).json({
 				success: true,
-				directories
+				events
 			});
 		} catch (error) {
 			return response.status(400).json(handleErrors(error));
@@ -33,7 +33,7 @@ class DirectoryController {
 			const usedTags = new Array();
 			
 			for(const tag of allTags) {
-				if(await Directory.exists({tags: { '$regex' : tag.title, '$options' : 'i' }})) {
+				if(await Event.exists({tags: { '$regex' : tag.title, '$options' : 'i' }})) {
 					usedTags.push(tag);
 				}
 			}
@@ -60,7 +60,7 @@ class DirectoryController {
 		    const image = request.files.image;
 
 			if(!owner) {
-				throw new Error("É necessário estar logado para saber a quem pertence este Directory");
+				throw new Error("É necessário estar logado para saber a quem pertence este Evento");
 			}
 
 		    if(typeof(tags) === "undefined") {
@@ -87,12 +87,12 @@ class DirectoryController {
 
 		    //__basedir is a Global Variable that we assigned at our server.js that return the root path of the project
 		    const imageName = `${Date.now()}-${image.name}`;
-		    const imagePath = `${__basedir}/public/images/directories/${imageName}`;
+		    const imagePath = `${__basedir}/public/images/events/${imageName}`;
 
-			const directory = await Directory.create({
+			const event = await Event.create({
 				owner,
 				title,
-				imagePath: '/images/directories/'+imageName,
+				imagePath: '/images/events/'+imageName,
 				description,
 				tags
 			});
@@ -106,7 +106,7 @@ class DirectoryController {
 
 			return response.status(200).json({
 				success: true,
-				directory
+				event
 			});
 
 		} catch (error) {
@@ -116,21 +116,21 @@ class DirectoryController {
 
 	async find(request, response) {
 		try {
-			const directory = await Directory.findById(request.params.id);
+			const event = await Event.findById(request.params.id);
 
-			if (!directory) {
-				throw new Error("Diretório não encontrada");
+			if (!event) {
+				throw new Error("Evento não encontrada");
 			}
 
 			//Se não estiver logado
 			if(!jwt.checkToken(request)) {
-				directory.views = directory.views + 1;
-				directory.save();
+				event.views = event.views + 1;
+				event.save();
 			}
 
 			return response.json({
 				success: true,
-				directory
+				event
 			});
 		} catch (error) {
 			return response.status(400).json(handleErrors(error));
@@ -143,10 +143,10 @@ class DirectoryController {
 			const { title, description } = request.body;
 			let {tags} = request.body;
 
-			const directory = await Directory.findById(request.params.id);
+			const event = await Event.findById(request.params.id);
 
-			if(!directory) {
-				throw new Error("Diretório não encontrada");
+			if(!event) {
+				throw new Error("Evento não encontrada");
 			}
 
 			if(typeof(tags) === "undefined") {
@@ -179,12 +179,12 @@ class DirectoryController {
 		    	//__basedir is a Global Variable that we assigned at our server.js that return the root path of the project
 
 		    	//Removendo a imagem antiga
-		    	fileSystem.unlinkSync(__basedir+"/public"+directory.imagePath);
+		    	fileSystem.unlinkSync(__basedir+"/public"+event.imagePath);
 
 			    const imageName = `${Date.now()}-${image.name}`;
-			    const imagePath = `${__basedir}/public/images/directories/${imageName}`;
+			    const imagePath = `${__basedir}/public/images/events/${imageName}`;
 
-				directory.imagePath = '/images/directories/'+imageName;
+				event.imagePath = '/images/events/'+imageName;
 
 			    //Adicionando a imagem nova
 			    image.mv(imagePath, function (err) {
@@ -194,15 +194,15 @@ class DirectoryController {
 			    });
 			}
 
-			directory.title = title;
-			directory.description = description;
-			directory.tags = tags;
+			event.title = title;
+			event.description = description;
+			event.tags = tags;
 
-			await directory.save();
+			await event.save();
 
 			return response.json({
 				success: true,
-				directory
+				event
 			});
 		} catch (error) {
 			return response.status(400).json(handleErrors(error));
@@ -211,17 +211,17 @@ class DirectoryController {
 
 	async delete(request, response) {
 		try {
-			const directory = await Directory.findById(request.params.id);
+			const event = await Event.findById(request.params.id);
 			
-			if (!directory) {
-		        throw new Error("Diretório Não Existe!");
+			if (!event) {
+		        throw new Error("Evento Não Existe!");
 		    }
 
-		    await directory.remove();
+		    await event.remove();
 
 			return response.json({
 				success: true,
-				message: 'Diretório deletado'
+				message: 'Evento deletado'
 			});
 		} catch (error) {
 			return response.status(400).json(handleErrors(error));
@@ -229,4 +229,4 @@ class DirectoryController {
 	}
 }
 
-module.exports = new DirectoryController();
+module.exports = new EventController();

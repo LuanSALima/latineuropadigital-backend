@@ -5,28 +5,28 @@ const fileSystem = require('fs');
 
 const Schema = mongoose.Schema;
 
-const directorySchema = new Schema({
+const eventSchema = new Schema({
 	owner: {
 		type: String,
-		required: [true, 'É necessário informar quem publicou este Diretório'],
+		required: [true, 'É necessário informar quem publicou este Evento'],
 	},
 	title: {
 		type: String,
-		required: [true, 'É necessário informar o título do Diretório'],
+		required: [true, 'É necessário informar o título do Evento'],
 		trim: true,
 	},
 	description: {
 		type: String,
-		required: [true, 'É necessário informar a descrição do Diretório'],
+		required: [true, 'É necessário informar a descrição do Evento'],
 		trim: true
 	},
 	imagePath: {
 		type: String,
-		required: [true, 'É necessário cadastrar uma imagem do Diretório']
+		required: [true, 'É necessário cadastrar uma imagem do Evento']
 	},
 	tags: {
 		type: [String],
-		required: [true, 'É necessário informar as tags do Diretório']
+		required: [true, 'É necessário informar as tags do Evento']
 	},
 	views: {
 		type: Number,
@@ -36,7 +36,7 @@ const directorySchema = new Schema({
 	timestamps: true,
 });
 
-directorySchema.pre("remove", async function (next) {
+eventSchema.pre("remove", async function (next) {
 	/*
 	fileSystem.unlinkSync(__basedir+"/public"+this.imagePath);
 	next();
@@ -49,6 +49,6 @@ directorySchema.pre("remove", async function (next) {
   	next();
 });
 
-const Directory = mongoose.model('Directory', directorySchema);
+const Event = mongoose.model('Event', eventSchema);
 
-module.exports = Directory;
+module.exports = Event;
