@@ -11,10 +11,69 @@ const fileSystem = require('fs');
 class EventController {
 	async list(request, response) {
 		try {
-			const events = await Event.find();
+			let events = undefined;
+
+			if(request.query.views) {
+				switch(request.query.views) {
+					case 'daily' :
+						var today = new Date();
+						var yesterday = new Date();
+	  					yesterday.setDate(today.getDate()-1);
+
+	  					events = await Event.find({
+	  						"createdAt": {
+	  							"$gte": yesterday,
+	  							"$lt": today
+	  						}
+	  					}).sort({views: 'desc'});
+						break;
+					case 'weekly' :
+						var today = new Date();
+						var lastWeek = new Date();
+	  					lastWeek.setDate(today.getDate()-7);
+
+	  					events = await Event.find({
+	  						"createdAt": {
+	  							"$gte": lastWeek,
+	  							"$lt": today
+	  						}
+	  					}).sort({views: 'desc'});
+						break;
+					case 'monthly' :
+						var today = new Date();
+						var lastMonth = new Date();
+	  					lastMonth.setDate(1);
+	  					lastMonth.setMonth(today.getMonth());
+	  					lastMonth.setHours(0);
+	  					lastMonth.setMinutes(0);
+
+	  					events = await Event.find({
+	  						"createdAt": {
+	  							"$gte": lastMonth,
+	  							"$lt": today
+	  						}
+	  					}).sort({views: 'desc'});
+						break;
+					case 'allTime' :
+	  					events = await Event.find({}).sort({views: 'desc'});
+						break;
+					default:
+						throw new Error(request.query.views+" não é uma data válida");
+				}
+			} else {
+				events = await Event.find();
+			}
+
+			if(!events) {
+				throw new Error("Não foi possível Buscar pelos Eventos");
+			}
 
 			if (events.length === 0) {
-		        throw new Error("Não há Eventos Cadastradas no Banco de Dados!");
+				if(request.query.views) {
+					throw new Error("Não há Eventos Cadastrados dentro do espaço de tempo: "+request.query.views);
+				} else {
+					throw new Error("Não há Eventos Cadastrados no Banco de Dados!");
+				}
 		    }
 
 			return response.status(200).json({
