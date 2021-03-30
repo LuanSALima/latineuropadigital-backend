@@ -110,3 +110,4 @@ yarn.lock
 #images locally uploaded
 public/images/posts/*
 public/images/notices/*
+public/images/directories/*
