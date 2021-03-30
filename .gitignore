@@ -111,3 +111,4 @@ yarn.lock
 public/images/posts/*
 public/images/notices/*
 public/images/directories/*
+public/images/events/*

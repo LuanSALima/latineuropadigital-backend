@@ -7,6 +7,7 @@ const TagsController = require('./controllers/TagsController');
 const NoticeController = require('./controllers/NoticeController');
 const DirectoryController = require('./controllers/DirectoryController');
 const EventController = require('./controllers/EventController');
+const CourseController = require('./controllers/CourseController');
 
 const Role = require('./helpers/roles');
 const authorized = require('./middlewares/authorize');
@@ -40,6 +41,13 @@ router.post("/event/create", authorized(Role.Admin), EventController.create);
 router.put("/event/:id", authorized(Role.Admin), EventController.update);
 router.delete("/event/:id", authorized(Role.Admin), EventController.delete);
 router.get("/events/tags", EventController.tagsUsed);
+
+router.get("/course/list", CourseController.list);
+router.get("/course/:id", CourseController.find);
+router.post("/course/create", authorized(Role.Admin), CourseController.create);
+router.put("/course/:id", authorized(Role.Admin), CourseController.update);
+router.delete("/course/:id", authorized(Role.Admin), CourseController.delete);
+router.get("/courses/tags", CourseController.tagsUsed);
 
 router.get("/job/list", JobController.list);
 router.get("/job/:id", JobController.find);
