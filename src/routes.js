@@ -66,6 +66,7 @@ router.post("/tag/create", authorized(Role.Admin), TagsController.create);
 router.put("/tag/:id", authorized(Role.Admin), TagsController.update);
 router.delete("/tag/:id", authorized(Role.Admin), TagsController.delete);
 //router.get("/tags/wipe", TagsController.deleteAll);
+router.get("/tags/:type", TagsController.listByType);
 
 router.get("/jobtype/list", JobTypeController.list);
 router.get("/jobtype/:id", JobTypeController.find);

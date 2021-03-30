@@ -13,6 +13,10 @@ const tagSchema = new Schema({
 		type: String,
 		required: [true, 'É necessário informar a descrição da Tag'],
 		trim: true,
+	},
+	types: {
+		type: [String],
+		required: [true, 'É necessário informar que para que tipo de Publicação esta Tag pertence']
 	}
 });
 
