@@ -8,6 +8,7 @@ const NoticeController = require('./controllers/NoticeController');
 const DirectoryController = require('./controllers/DirectoryController');
 const EventController = require('./controllers/EventController');
 const CourseController = require('./controllers/CourseController');
+const JobTypeController = require('./controllers/JobTypeController');
 
 const Role = require('./helpers/roles');
 const authorized = require('./middlewares/authorize');
@@ -65,6 +66,13 @@ router.post("/tag/create", authorized(Role.Admin), TagsController.create);
 router.put("/tag/:id", authorized(Role.Admin), TagsController.update);
 router.delete("/tag/:id", authorized(Role.Admin), TagsController.delete);
 //router.get("/tags/wipe", TagsController.deleteAll);
+
+router.get("/jobtype/list", JobTypeController.list);
+router.get("/jobtype/:id", JobTypeController.find);
+router.post("/jobtype/create", authorized(Role.Admin), JobTypeController.create);
+router.put("/jobtype/:id", authorized(Role.Admin), JobTypeController.update);
+router.delete("/jobtype/:id", authorized(Role.Admin), JobTypeController.delete);
+//router.get("/tags/wipe", JobTypeController.deleteAll);
 
 router.use("/", (req, res, next) => {
   res.status("404").json({success: false, message: "Route not found"});
