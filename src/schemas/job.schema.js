@@ -24,6 +24,10 @@ const jobSchema = new Schema({
 		required: [true, 'É necessário informar a descrição'],
 		trim: true
 	},
+	status: {
+		type: String,
+		required: [true, 'É necessário saber qual o status da Oportunidade']
+	}
 }, {
 	timestamps: true,
 });

@@ -6,10 +6,44 @@ const handleErrors = require('../helpers/error-handler');
 class JobController {
 	async list(request, response) {
 		try {
+			const jobs = await Job.find({status: 'accepted'});
+
+			if (jobs.length === 0) {
+		        throw new Error("Não há Trabalhos Aceitos no Banco de Dados!");
+		    }
+
+			return response.status(200).json({
+				success: true,
+				jobs
+			});
+		} catch (error) {
+			return response.status(400).json(handleErrors(error));
+		}
+	}
+
+	async listAll(request, response) {
+		try {
 			const jobs = await Job.find();
 
 			if (jobs.length === 0) {
-		        throw new Error("Não há Trabalhos Cadastradas no Banco de Dados!");
+		        throw new Error("Não há Trabalhos Cadastrados no Banco de Dados!");
+		    }
+
+			return response.status(200).json({
+				success: true,
+				jobs
+			});
+		} catch (error) {
+			return response.status(400).json(handleErrors(error));
+		}
+	}
+
+	async listByStatus(request, response) {
+		try {
+			const jobs = await Job.find({status: request.params.status});
+
+			if (jobs.length === 0) {
+		        throw new Error("Não há Trabalhos "+(request.params.status)+" no Banco de Dados!");
 		    }
 
 			return response.status(200).json({
@@ -29,7 +63,8 @@ class JobController {
 				professionalName,
 				professionalContact,
 				title,
-				description
+				description,
+				status: 'pendent'
 			});
 
 			return response.status(200).json({
@@ -61,7 +96,7 @@ class JobController {
 
 	async update(request, response) {
 		try {
-			const { professionalName, professionalContact, title, description } = request.body;
+			const { professionalName, professionalContact, title, description, status } = request.body;
 
 			const job = await Job.findById(request.params.id);
 
@@ -69,10 +104,17 @@ class JobController {
 				throw new Error("Publicação não encontrada");
 			}
 
+			const validStatus = ["pendent", "accepted"];
+
+			if(validStatus.indexOf(status) === -1){
+				throw new Error("Status inválido");
+			}
+
 			job.professionalName = professionalName;
 			job.professionalContact = professionalContact;
 			job.title = title;
 			job.description = description;
+			job.status = status;
 
 			await job.save();
 
