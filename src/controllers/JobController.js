@@ -1,5 +1,6 @@
 let Job = require('../schemas/job.schema');
 let User = require('../schemas/user.schema');
+let JobType = require('../schemas/jobtype.schema');
 
 const handleErrors = require('../helpers/error-handler');
 
@@ -57,14 +58,37 @@ class JobController {
 
 	async create(request, response) {
 		try {
-			const { professionalName, professionalContact, title, description } = request.body;
+			const { professionalName, professionalContact, title, description, jobTypes } = request.body;
+
+		    if(typeof(jobTypes) === "undefined") {
+				throw new Error("É necessário colocar pelo menos 1 tipo trabalho");
+			}
+			if(typeof(jobTypes) === "string") {
+				jobTypes = new Array(jobTypes);
+			}
+
+			let jobTypesNotFound = [];
+
+			for (const jobType of jobTypes) {
+				if(await JobType.exists({title: jobType})) {
+					//Tag Existe
+				} else {
+					//Tag Não Existe
+					jobTypesNotFound.push(jobType);
+				}
+			}
+
+			if(jobTypesNotFound.length) {
+				throw new Error("Tipos de Trbalhos: "+jobTypesNotFound.toString()+" não existem");
+			}
 
 			const job = await Job.create({
 				professionalName,
 				professionalContact,
 				title,
 				description,
-				status: 'pendent'
+				status: 'pendent',
+				jobTypes
 			});
 
 			return response.status(200).json({

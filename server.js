@@ -17,7 +17,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use(fileUpload());
-app.use(express.static('public'))
+app.use(express.static('public'));
 
 const uri = process.env.MONGO_URL;
 mongoose.connect(uri, { useNewUrlParser: true, useCreateIndex: true, useUnifiedTopology: true})
