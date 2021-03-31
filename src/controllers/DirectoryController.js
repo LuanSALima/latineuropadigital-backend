@@ -61,7 +61,7 @@ class DirectoryController {
 						throw new Error(request.query.views+" não é uma data válida");
 				}
 			} else {
-				directories = await Directory.find();
+				directories = await Directory.find().sort({createdAt: 'desc'});
 			}
 
 			if(!directories) {

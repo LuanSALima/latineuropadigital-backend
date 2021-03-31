@@ -61,7 +61,7 @@ class CourseController {
 						throw new Error(request.query.views+" não é uma data válida");
 				}
 			} else {
-				courses = await Course.find();
+				courses = await Course.find().sort({createdAt: 'desc'});
 			}
 
 			if(!courses) {

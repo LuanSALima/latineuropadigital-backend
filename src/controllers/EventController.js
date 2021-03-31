@@ -61,7 +61,7 @@ class EventController {
 						throw new Error(request.query.views+" não é uma data válida");
 				}
 			} else {
-				events = await Event.find();
+				events = await Event.find().sort({createdAt: 'desc'});
 			}
 
 			if(!events) {

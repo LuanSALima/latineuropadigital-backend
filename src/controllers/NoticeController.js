@@ -61,7 +61,7 @@ class NoticeController {
 						throw new Error(request.query.views+" não é uma data válida");
 				}
 			} else {
-				notices = await Notice.find();
+				notices = await Notice.find().sort({createdAt: 'desc'});
 			}
 
 			if(!notices) {
