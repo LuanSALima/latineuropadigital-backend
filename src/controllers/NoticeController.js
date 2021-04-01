@@ -11,7 +11,47 @@ const fileSystem = require('fs');
 class NoticeController {
 	async list(request, response) {
 		try {
-			let notices = undefined;
+			const query = Notice.find();
+
+			//If have a query for page or results
+			if(request.query.page || request.query.results) {
+
+				//check if both exists
+				if(request.query.page && request.query.results) {
+
+					//Assign page value at a constant and parse for int
+					const page = parseInt(request.query.page);
+					//if page value is not a integer
+					if(!Number.isInteger(page)) {
+						throw new Error("Página deve ser um número");
+					}
+					//if page value is less than 1
+					if(page < 1) {
+						throw new Error("Página deve ser um número maior que 0");
+					}
+
+					//Assign results value at a constant and parse for int
+					const results = parseInt(request.query.results);
+					//if results value is not a integer
+					if(!Number.isInteger(results)) {
+						throw new Error("Quantidade de resultados deve ser um número");
+					}
+					//if results value is less than 1
+					if(results < 1) {
+						throw new Error("Quantidade de resultados deve ser um número maior que 0");
+					}
+
+					//Assign to query a limit of results and skip by page and results
+					query.limit(results).skip((page-1)*results);
+				} else {
+					//Either page dont exist or results not exist
+					if(!request.query.page) {
+						throw new Error("Necessário informar qual página está");
+					} else {
+						throw new Error("Necessário informar a quantidade de resultados");
+					}
+				}
+			}
 
 			if(request.query.views) {
 				switch(request.query.views) {
@@ -20,24 +60,14 @@ class NoticeController {
 						var yesterday = new Date();
 	  					yesterday.setDate(today.getDate()-1);
 
-	  					notices = await Notice.find({
-	  						"createdAt": {
-	  							"$gte": yesterday,
-	  							"$lt": today
-	  						}
-	  					}).sort({views: 'desc'});
+	  					query.where({createdAt: {"$gte": yesterday, "$lt": today}}).sort({views: 'desc'});
 						break;
 					case 'weekly' :
 						var today = new Date();
 						var lastWeek = new Date();
 	  					lastWeek.setDate(today.getDate()-7);
 
-	  					notices = await Notice.find({
-	  						"createdAt": {
-	  							"$gte": lastWeek,
-	  							"$lt": today
-	  						}
-	  					}).sort({views: 'desc'});
+	  					query.where({createdAt: {"$gte": lastWeek, "$lt": today}}).sort({views: 'desc'});
 						break;
 					case 'monthly' :
 						var today = new Date();
@@ -47,29 +77,24 @@ class NoticeController {
 	  					lastMonth.setHours(0);
 	  					lastMonth.setMinutes(0);
 
-	  					notices = await Notice.find({
-	  						"createdAt": {
-	  							"$gte": lastMonth,
-	  							"$lt": today
-	  						}
-	  					}).sort({views: 'desc'});
+	  					query.where({createdAt: {"$gte": lastMonth, "$lt": today}}).sort({views: 'desc'});
 						break;
 					case 'allTime' :
-	  					notices = await Notice.find({}).sort({views: 'desc'});
+	  					query.sort({views: 'desc'});
 						break;
 					default:
 						throw new Error(request.query.views+" não é uma data válida");
 				}
 			} else {
-				notices = await Notice.find().sort({createdAt: 'desc'});
+				query.sort({createdAt: 'desc'});
 			}
 
-			if(!notices) {
-				throw new Error("Não foi possível Buscar pelas Notícias");
-			}
+			const notices = await query.exec();
 
 			if (notices.length === 0) {
-				if(request.query.views) {
+				if(request.query.page) {
+					throw new Error("Nestá página não possui notícias");
+				} else if(request.query.views) {
 					throw new Error("Não há Notícias Cadastradas dentro do espaço de tempo: "+request.query.views);
 				} else {
 					throw new Error("Não há Notícias Cadastradas no Banco de Dados!");
@@ -185,7 +210,7 @@ class NoticeController {
 			//Se não estiver logado
 			if(!jwt.checkToken(request)) {
 				notice.views = notice.views + 1;
-				notice.save();
+				notice.save({ validateBeforeSave: false });
 			}
 
 			return response.json({
