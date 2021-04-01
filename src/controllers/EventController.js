@@ -109,7 +109,7 @@ class EventController {
 
 	async create(request, response) {
 		try {
-			const { title, description } = request.body;
+			const { title, subtitle, content } = request.body;
 			let {tags} = request.body;
 			
 			const owner = request.user.id;
@@ -151,8 +151,9 @@ class EventController {
 			const event = await Event.create({
 				owner,
 				title,
+				subtitle,
+				content,
 				imagePath: '/images/events/'+imageName,
-				description,
 				tags
 			});
 
@@ -199,7 +200,7 @@ class EventController {
 	async update(request, response) {
 		try {
 
-			const { title, description } = request.body;
+			const { title, subtitle, content } = request.body;
 			let {tags} = request.body;
 
 			const event = await Event.findById(request.params.id);
@@ -254,7 +255,8 @@ class EventController {
 			}
 
 			event.title = title;
-			event.description = description;
+			event.subtitle = subtitle;
+			event.content = content;
 			event.tags = tags;
 
 			await event.save();

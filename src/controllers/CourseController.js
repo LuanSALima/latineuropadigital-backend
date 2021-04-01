@@ -109,7 +109,7 @@ class CourseController {
 
 	async create(request, response) {
 		try {
-			const { title, description } = request.body;
+			const { title, subtitle, content } = request.body;
 			let {tags} = request.body;
 			
 			const owner = request.user.id;
@@ -151,8 +151,9 @@ class CourseController {
 			const course = await Course.create({
 				owner,
 				title,
+				subtitle,
+				content,
 				imagePath: '/images/courses/'+imageName,
-				description,
 				tags
 			});
 
@@ -199,7 +200,7 @@ class CourseController {
 	async update(request, response) {
 		try {
 
-			const { title, description } = request.body;
+			const { title, subtitle, content } = request.body;
 			let {tags} = request.body;
 
 			const course = await Course.findById(request.params.id);
@@ -254,7 +255,8 @@ class CourseController {
 			}
 
 			course.title = title;
-			course.description = description;
+			course.subtitle = subtitle;
+			course.content = content;
 			course.tags = tags;
 
 			await course.save();

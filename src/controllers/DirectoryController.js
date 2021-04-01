@@ -109,7 +109,7 @@ class DirectoryController {
 
 	async create(request, response) {
 		try {
-			const { title, description } = request.body;
+			const { title, subtitle, content } = request.body;
 			let {tags} = request.body;
 			
 			const owner = request.user.id;
@@ -151,8 +151,9 @@ class DirectoryController {
 			const directory = await Directory.create({
 				owner,
 				title,
+				subtitle,
+				content,
 				imagePath: '/images/directories/'+imageName,
-				description,
 				tags
 			});
 
@@ -178,7 +179,7 @@ class DirectoryController {
 			const directory = await Directory.findById(request.params.id);
 
 			if (!directory) {
-				throw new Error("Diretório não encontrada");
+				throw new Error("Diretório não encontrado");
 			}
 
 			//Se não estiver logado
@@ -199,13 +200,13 @@ class DirectoryController {
 	async update(request, response) {
 		try {
 
-			const { title, description } = request.body;
+			const { title, subtitle, content } = request.body;
 			let {tags} = request.body;
 
 			const directory = await Directory.findById(request.params.id);
 
 			if(!directory) {
-				throw new Error("Diretório não encontrada");
+				throw new Error("Diretório não encontrado");
 			}
 
 			if(typeof(tags) === "undefined") {
@@ -254,7 +255,8 @@ class DirectoryController {
 			}
 
 			directory.title = title;
-			directory.description = description;
+			directory.subtitle = subtitle;
+			directory.content = content;
 			directory.tags = tags;
 
 			await directory.save();

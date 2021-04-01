@@ -15,9 +15,14 @@ const eventSchema = new Schema({
 		required: [true, 'É necessário informar o título do Evento'],
 		trim: true,
 	},
-	description: {
+	subtitle: {
 		type: String,
-		required: [true, 'É necessário informar a descrição do Evento'],
+		required: [true, 'É necessário informar o subtítulo do Evento'],
+		trim: true
+	},
+	content: {
+		type: String,
+		required: [true, 'É necessário informar o conteudo do Evento'],
 		trim: true
 	},
 	imagePath: {

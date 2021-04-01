@@ -109,7 +109,7 @@ class NoticeController {
 
 	async create(request, response) {
 		try {
-			const { title, description } = request.body;
+			const { title, subtitle, content } = request.body;
 			let {tags} = request.body;
 			
 			const owner = request.user.id;
@@ -151,8 +151,9 @@ class NoticeController {
 			const notice = await Notice.create({
 				owner,
 				title,
+				subtitle,
+				content,
 				imagePath: '/images/notices/'+imageName,
-				description,
 				tags
 			});
 
@@ -199,7 +200,7 @@ class NoticeController {
 	async update(request, response) {
 		try {
 
-			const { title, description } = request.body;
+			const { title, subtitle, content } = request.body;
 			let {tags} = request.body;
 
 			const notice = await Notice.findById(request.params.id);
@@ -254,7 +255,8 @@ class NoticeController {
 			}
 
 			notice.title = title;
-			notice.description = description;
+			notice.subtitle = subtitle;
+			notice.content = content;
 			notice.tags = tags;
 
 			await notice.save();

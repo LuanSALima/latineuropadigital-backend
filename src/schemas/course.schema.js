@@ -15,9 +15,14 @@ const courseSchema = new Schema({
 		required: [true, 'É necessário informar o título do Courseo'],
 		trim: true,
 	},
-	description: {
+	subtitle: {
 		type: String,
-		required: [true, 'É necessário informar a descrição do Courseo'],
+		required: [true, 'É necessário informar o subtítulo do Courseo'],
+		trim: true
+	},
+	content: {
+		type: String,
+		required: [true, 'É necessário informar o conteudo do Courseo'],
 		trim: true
 	},
 	imagePath: {
