@@ -13,6 +13,8 @@ class DirectoryController {
 		try {
 			const query = Directory.find();
 
+			query.populate({ path: 'tags', select: 'title -_id' });
+
 			if(request.query.tag) {
 				const tag = request.query.tag;
 
@@ -37,7 +39,6 @@ class DirectoryController {
 					throw new Error("Página deve ser um número maior que 0");
 				}
 
-				//Assign results value at a constant and parse for int
 				const results = 30;
 
 				//Assign to query a limit of results and skip by page and results
@@ -80,6 +81,7 @@ class DirectoryController {
 				query.sort({createdAt: 'desc'});
 			}
 
+			query.lean(); //Transform the Mongoose Documents into a plain javascript object. That way we can set the property the way we want
 			const directories = await query.exec();
 
 			if (directories.length === 0) {
@@ -91,6 +93,15 @@ class DirectoryController {
 					throw new Error("Não há Diretórios Cadastrados no Banco de Dados!");
 				}
 		    }
+
+		    for(const directory of directories) {
+		    	const tags = [];
+		    	for(const tag of directory.tags) {
+		    		tags.push(tag.title);
+		    	}
+		    	directory.tags = tags; //Instead of sending a array of objects, send a array of strings
+		    }
+
 
 		    const totalDirectories = await Directory.countDocuments({});
 
@@ -111,7 +122,7 @@ class DirectoryController {
 			const usedTags = new Array();
 			
 			for(const tag of allTags) {
-				if(await Directory.exists({tags: { '$regex' : tag.title, '$options' : 'i' }})) {
+				if(await Directory.exists({tags: tag._id})) {
 					usedTags.push(tag);
 				}
 			}
@@ -133,15 +144,7 @@ class DirectoryController {
 			
 			const owner = request.user.id;
 
-			validation.validateImage(request.files);
-
-		    const image = request.files.image;
-
-			if(!owner) {
-				throw new Error("É necessário estar logado para saber a quem pertence este Directory");
-			}
-
-		    if(typeof(tags) === "undefined") {
+			if(typeof(tags) === "undefined") {
 				throw new Error("É necessário colocar pelo menos 1 tag");
 			}
 			if(typeof(tags) === "string") {
@@ -149,10 +152,12 @@ class DirectoryController {
 			}
 
 			let tagsNotFound = [];
+			let idTags = [];
 
 			for (const tag of tags) {
-				if(await Tags.exists({title: tag})) {
-					//Tag Existe
+				const tagBCD = await Tags.findOne({title: tag});
+				if(tagBCD) {
+					idTags.push(tagBCD._id);
 				} else {
 					//Tag Não Existe
 					tagsNotFound.push(tag);
@@ -161,6 +166,14 @@ class DirectoryController {
 
 			if(tagsNotFound.length) {
 				throw new Error("Tags: "+tagsNotFound.toString()+" não existem");
+			}
+
+			validation.validateImage(request.files);
+
+		    const image = request.files.image;
+
+			if(!owner) {
+				throw new Error("É necessário estar logado para saber a quem pertence este Directory");
 			}
 
 		    //__basedir is a Global Variable that we assigned at our server.js that return the root path of the project
@@ -173,7 +186,7 @@ class DirectoryController {
 				subtitle,
 				content,
 				imagePath: '/images/directories/'+imageName,
-				tags
+				tags: idTags
 			});
 
 		    //move the image to the path 'imagePath'
@@ -195,7 +208,7 @@ class DirectoryController {
 
 	async find(request, response) {
 		try {
-			const directory = await Directory.findById(request.params.id);
+			const directory = await Directory.findById(request.params.id).populate({ path: 'tags', select: 'title -_id' });
 
 			if (!directory) {
 				throw new Error("Diretório não encontrado");
@@ -207,9 +220,17 @@ class DirectoryController {
 				directory.save({ validateBeforeSave: false });
 			}
 
+			const directoryJSON = directory.toJSON();
+
+	    	const tags = [];
+	    	for(const tag of directoryJSON.tags) {
+	    		tags.push(tag.title);
+	    	}
+	    	directoryJSON.tags = tags; //Instead of sending a array of objects, send a array of strings
+
 			return response.json({
 				success: true,
-				directory
+				directory: directoryJSON
 			});
 		} catch (error) {
 			return response.status(400).json(handleErrors(error));
@@ -236,10 +257,12 @@ class DirectoryController {
 			}
 
 			let tagsNotFound = [];
+			let idTags = [];
 
 			for (const tag of tags) {
-				if(await Tags.exists({title: tag})) {
-					//Tag Existe
+				const tagBCD = await Tags.findOne({title: tag});
+				if(tagBCD) {
+					idTags.push(tagBCD._id);
 				} else {
 					//Tag Não Existe
 					tagsNotFound.push(tag);
@@ -276,7 +299,7 @@ class DirectoryController {
 			directory.title = title;
 			directory.subtitle = subtitle;
 			directory.content = content;
-			directory.tags = tags;
+			directory.tags = idTags;
 
 			await directory.save();
 

@@ -29,10 +29,10 @@ const courseSchema = new Schema({
 		type: String,
 		required: [true, 'É necessário cadastrar uma imagem do Courseo']
 	},
-	tags: {
-		type: [String],
-		required: [true, 'É necessário informar as tags do Courseo']
-	},
+	tags: [{
+		type: Schema.Types.ObjectId,
+		ref: "Tag"
+	}],
 	views: {
 		type: Number,
 		default: 0

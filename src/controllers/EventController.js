@@ -13,6 +13,8 @@ class EventController {
 		try {
 			const query = Event.find();
 
+			query.populate({ path: 'tags', select: 'title -_id' });
+
 			if(request.query.tag) {
 				const tag = request.query.tag;
 
@@ -37,7 +39,6 @@ class EventController {
 					throw new Error("Página deve ser um número maior que 0");
 				}
 
-				//Assign results value at a constant and parse for int
 				const results = 30;
 
 				//Assign to query a limit of results and skip by page and results
@@ -80,6 +81,7 @@ class EventController {
 				query.sort({createdAt: 'desc'});
 			}
 
+			query.lean(); //Transform the Mongoose Documents into a plain javascript object. That way we can set the property the way we want
 			const events = await query.exec();
 
 			if (events.length === 0) {
@@ -90,6 +92,14 @@ class EventController {
 				} else {
 					throw new Error("Não há Eventos Cadastrados no Banco de Dados!");
 				}
+		    }
+
+		    for(const event of events) {
+		    	const tags = [];
+		    	for(const tag of event.tags) {
+		    		tags.push(tag.title);
+		    	}
+		    	event.tags = tags; //Instead of sending a array of objects, send a array of strings
 		    }
 
 		    const totalEvents = await Event.countDocuments({});
@@ -111,7 +121,7 @@ class EventController {
 			const usedTags = new Array();
 			
 			for(const tag of allTags) {
-				if(await Event.exists({tags: { '$regex' : tag.title, '$options' : 'i' }})) {
+				if(await Event.exists({tags: tag._id})) {
 					usedTags.push(tag);
 				}
 			}
@@ -133,15 +143,7 @@ class EventController {
 			
 			const owner = request.user.id;
 
-			validation.validateImage(request.files);
-
-		    const image = request.files.image;
-
-			if(!owner) {
-				throw new Error("É necessário estar logado para saber a quem pertence este Evento");
-			}
-
-		    if(typeof(tags) === "undefined") {
+			if(typeof(tags) === "undefined") {
 				throw new Error("É necessário colocar pelo menos 1 tag");
 			}
 			if(typeof(tags) === "string") {
@@ -149,10 +151,12 @@ class EventController {
 			}
 
 			let tagsNotFound = [];
+			let idTags = [];
 
 			for (const tag of tags) {
-				if(await Tags.exists({title: tag})) {
-					//Tag Existe
+				const tagBCD = await Tags.findOne({title: tag});
+				if(tagBCD) {
+					idTags.push(tagBCD._id);
 				} else {
 					//Tag Não Existe
 					tagsNotFound.push(tag);
@@ -161,6 +165,14 @@ class EventController {
 
 			if(tagsNotFound.length) {
 				throw new Error("Tags: "+tagsNotFound.toString()+" não existem");
+			}
+
+			validation.validateImage(request.files);
+
+		    const image = request.files.image;
+
+			if(!owner) {
+				throw new Error("É necessário estar logado para saber a quem pertence este Evento");
 			}
 
 		    //__basedir is a Global Variable that we assigned at our server.js that return the root path of the project
@@ -173,7 +185,7 @@ class EventController {
 				subtitle,
 				content,
 				imagePath: '/images/events/'+imageName,
-				tags
+				tags: idTags
 			});
 
 		    //move the image to the path 'imagePath'
@@ -195,7 +207,7 @@ class EventController {
 
 	async find(request, response) {
 		try {
-			const event = await Event.findById(request.params.id);
+			const event = await Event.findById(request.params.id).populate({ path: 'tags', select: 'title -_id' });
 
 			if (!event) {
 				throw new Error("Evento não encontrada");
@@ -207,9 +219,17 @@ class EventController {
 				event.save({ validateBeforeSave: false });
 			}
 
+			const eventJSON = event.toJSON();
+
+	    	const tags = [];
+	    	for(const tag of eventJSON.tags) {
+	    		tags.push(tag.title);
+	    	}
+	    	eventJSON.tags = tags; //Instead of sending a array of objects, send a array of strings
+
 			return response.json({
 				success: true,
-				event
+				event: eventJSON
 			});
 		} catch (error) {
 			return response.status(400).json(handleErrors(error));
@@ -236,10 +256,12 @@ class EventController {
 			}
 
 			let tagsNotFound = [];
+			let idTags = [];
 
 			for (const tag of tags) {
-				if(await Tags.exists({title: tag})) {
-					//Tag Existe
+				const tagBCD = await Tags.findOne({title: tag});
+				if(tagBCD) {
+					idTags.push(tagBCD._id);
 				} else {
 					//Tag Não Existe
 					tagsNotFound.push(tag);
@@ -276,7 +298,7 @@ class EventController {
 			event.title = title;
 			event.subtitle = subtitle;
 			event.content = content;
-			event.tags = tags;
+			event.tags = idTags;
 
 			await event.save();
 

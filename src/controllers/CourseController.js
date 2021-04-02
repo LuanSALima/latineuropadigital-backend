@@ -13,6 +13,8 @@ class CourseController {
 		try {
 			const query = Course.find();
 
+			query.populate({ path: 'tags', select: 'title -_id' });
+
 			if(request.query.tag) {
 				const tag = request.query.tag;
 
@@ -37,7 +39,6 @@ class CourseController {
 					throw new Error("Página deve ser um número maior que 0");
 				}
 
-				//Assign results value at a constant and parse for int
 				const results = 30;
 
 				//Assign to query a limit of results and skip by page and results
@@ -80,6 +81,7 @@ class CourseController {
 				query.sort({createdAt: 'desc'});
 			}
 
+			query.lean(); //Transform the Mongoose Documents into a plain javascript object. That way we can set the property the way we want
 			const courses = await query.exec();
 
 			if (courses.length === 0) {
@@ -90,6 +92,14 @@ class CourseController {
 				} else {
 					throw new Error("Não há Cursos Cadastrados no Banco de Dados!");
 				}
+		    }
+
+		    for(const course of courses) {
+		    	const tags = [];
+		    	for(const tag of course.tags) {
+		    		tags.push(tag.title);
+		    	}
+		    	course.tags = tags; //Instead of sending a array of objects, send a array of strings
 		    }
 
 		    const totalCourses = await Course.countDocuments({});
@@ -111,7 +121,7 @@ class CourseController {
 			const usedTags = new Array();
 			
 			for(const tag of allTags) {
-				if(await Course.exists({tags: { '$regex' : tag.title, '$options' : 'i' }})) {
+				if(await Course.exists({tags: tag._id})) {
 					usedTags.push(tag);
 				}
 			}
@@ -133,15 +143,7 @@ class CourseController {
 			
 			const owner = request.user.id;
 
-			validation.validateImage(request.files);
-
-		    const image = request.files.image;
-
-			if(!owner) {
-				throw new Error("É necessário estar logado para saber a quem pertence este Curso");
-			}
-
-		    if(typeof(tags) === "undefined") {
+			if(typeof(tags) === "undefined") {
 				throw new Error("É necessário colocar pelo menos 1 tag");
 			}
 			if(typeof(tags) === "string") {
@@ -149,10 +151,12 @@ class CourseController {
 			}
 
 			let tagsNotFound = [];
+			let idTags = [];
 
 			for (const tag of tags) {
-				if(await Tags.exists({title: tag})) {
-					//Tag Existe
+				const tagBCD = await Tags.findOne({title: tag});
+				if(tagBCD) {
+					idTags.push(tagBCD._id);
 				} else {
 					//Tag Não Existe
 					tagsNotFound.push(tag);
@@ -161,6 +165,14 @@ class CourseController {
 
 			if(tagsNotFound.length) {
 				throw new Error("Tags: "+tagsNotFound.toString()+" não existem");
+			}
+
+			validation.validateImage(request.files);
+
+		    const image = request.files.image;
+
+			if(!owner) {
+				throw new Error("É necessário estar logado para saber a quem pertence este Curso");
 			}
 
 		    //__basedir is a Global Variable that we assigned at our server.js that return the root path of the project
@@ -173,7 +185,7 @@ class CourseController {
 				subtitle,
 				content,
 				imagePath: '/images/courses/'+imageName,
-				tags
+				tags: idTags
 			});
 
 		    //move the image to the path 'imagePath'
@@ -195,7 +207,7 @@ class CourseController {
 
 	async find(request, response) {
 		try {
-			const course = await Course.findById(request.params.id);
+			const course = await Course.findById(request.params.id).populate({ path: 'tags', select: 'title -_id' });
 
 			if (!course) {
 				throw new Error("Curso não encontrada");
@@ -207,9 +219,17 @@ class CourseController {
 				course.save({ validateBeforeSave: false });
 			}
 
+			const courseJSON = course.toJSON();
+
+	    	const tags = [];
+	    	for(const tag of courseJSON.tags) {
+	    		tags.push(tag.title);
+	    	}
+	    	courseJSON.tags = tags; //Instead of sending a array of objects, send a array of strings
+
 			return response.json({
 				success: true,
-				course
+				course: courseJSON
 			});
 		} catch (error) {
 			return response.status(400).json(handleErrors(error));
@@ -236,10 +256,12 @@ class CourseController {
 			}
 
 			let tagsNotFound = [];
+			let idTags = [];
 
 			for (const tag of tags) {
-				if(await Tags.exists({title: tag})) {
-					//Tag Existe
+				const tagBCD = await Tags.findOne({title: tag});
+				if(tagBCD) {
+					idTags.push(tagBCD._id);
 				} else {
 					//Tag Não Existe
 					tagsNotFound.push(tag);
@@ -276,7 +298,7 @@ class CourseController {
 			course.title = title;
 			course.subtitle = subtitle;
 			course.content = content;
-			course.tags = tags;
+			course.tags = idTags;
 
 			await course.save();
 

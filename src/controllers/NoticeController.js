@@ -13,6 +13,8 @@ class NoticeController {
 		try {
 			const query = Notice.find();
 
+			query.populate({ path: 'tags', select: 'title -_id' });
+
 			if(request.query.tag) {
 				const tag = request.query.tag;
 
@@ -79,6 +81,7 @@ class NoticeController {
 				query.sort({createdAt: 'desc'});
 			}
 
+			query.lean(); //Transform the Mongoose Documents into a plain javascript object. That way we can set the property the way we want
 			const notices = await query.exec();
 
 			if (notices.length === 0) {
@@ -89,6 +92,14 @@ class NoticeController {
 				} else {
 					throw new Error("Não há Notícias Cadastradas no Banco de Dados!");
 				}
+		    }
+
+		    for(const notice of notices) {
+		    	const tags = [];
+		    	for(const tag of notice.tags) {
+		    		tags.push(tag.title);
+		    	}
+		    	notice.tags = tags; //Instead of sending a array of objects, send a array of strings
 		    }
 
 		    const totalNotices = await Notice.countDocuments({});
@@ -110,7 +121,7 @@ class NoticeController {
 			const usedTags = new Array();
 			
 			for(const tag of allTags) {
-				if(await Notice.exists({tags: { '$regex' : tag.title, '$options' : 'i' }})) {
+				if(await Notice.exists({tags: tag._id})) {
 					usedTags.push(tag);
 				}
 			}
@@ -132,15 +143,7 @@ class NoticeController {
 			
 			const owner = request.user.id;
 
-			validation.validateImage(request.files);
-
-		    const image = request.files.image;
-
-			if(!owner) {
-				throw new Error("É necessário estar logado para saber a quem pertence este Notice");
-			}
-
-		    if(typeof(tags) === "undefined") {
+			if(typeof(tags) === "undefined") {
 				throw new Error("É necessário colocar pelo menos 1 tag");
 			}
 			if(typeof(tags) === "string") {
@@ -148,10 +151,12 @@ class NoticeController {
 			}
 
 			let tagsNotFound = [];
+			let idTags = [];
 
 			for (const tag of tags) {
-				if(await Tags.exists({title: tag})) {
-					//Tag Existe
+				const tagBCD = await Tags.findOne({title: tag});
+				if(tagBCD) {
+					idTags.push(tagBCD._id);
 				} else {
 					//Tag Não Existe
 					tagsNotFound.push(tag);
@@ -160,6 +165,14 @@ class NoticeController {
 
 			if(tagsNotFound.length) {
 				throw new Error("Tags: "+tagsNotFound.toString()+" não existem");
+			}
+
+			validation.validateImage(request.files);
+
+		    const image = request.files.image;
+
+			if(!owner) {
+				throw new Error("É necessário estar logado para saber a quem pertence este Notice");
 			}
 
 		    //__basedir is a Global Variable that we assigned at our server.js that return the root path of the project
@@ -172,7 +185,7 @@ class NoticeController {
 				subtitle,
 				content,
 				imagePath: '/images/notices/'+imageName,
-				tags
+				tags: idTags
 			});
 
 		    //move the image to the path 'imagePath'
@@ -194,7 +207,7 @@ class NoticeController {
 
 	async find(request, response) {
 		try {
-			const notice = await Notice.findById(request.params.id);
+			const notice = await Notice.findById(request.params.id).populate({ path: 'tags', select: 'title -_id' });
 
 			if (!notice) {
 				throw new Error("Notícia não encontrada");
@@ -206,9 +219,17 @@ class NoticeController {
 				notice.save({ validateBeforeSave: false });
 			}
 
+			const noticeJSON = notice.toJSON();
+
+	    	const tags = [];
+	    	for(const tag of noticeJSON.tags) {
+	    		tags.push(tag.title);
+	    	}
+	    	noticeJSON.tags = tags; //Instead of sending a array of objects, send a array of strings
+
 			return response.json({
 				success: true,
-				notice
+				notice: noticeJSON
 			});
 		} catch (error) {
 			return response.status(400).json(handleErrors(error));
@@ -235,10 +256,12 @@ class NoticeController {
 			}
 
 			let tagsNotFound = [];
+			let idTags = [];
 
 			for (const tag of tags) {
-				if(await Tags.exists({title: tag})) {
-					//Tag Existe
+				const tagBCD = await Tags.findOne({title: tag});
+				if(tagBCD) {
+					idTags.push(tagBCD._id);
 				} else {
 					//Tag Não Existe
 					tagsNotFound.push(tag);
@@ -275,7 +298,7 @@ class NoticeController {
 			notice.title = title;
 			notice.subtitle = subtitle;
 			notice.content = content;
-			notice.tags = tags;
+			notice.tags = idTags;
 
 			await notice.save();
 
