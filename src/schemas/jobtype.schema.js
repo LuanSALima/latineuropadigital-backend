@@ -6,12 +6,12 @@ const Schema = mongoose.Schema;
 const jobtypeSchema = new Schema({
 	title: {
 		type: String,
-		required: [true, 'É necessário informar o nome do Tipo de Oportunidade'],
+		required: [true, 'Es necesario informar el nombre del tipo de oportunidad'],
 		trim: true,
 	},
 	description: {
 		type: String,
-		required: [true, 'É necessário informar a descrição do Tipo de Oportunidade'],
+		required: [true, 'Es necesario informar la descripción del tipo de oportunidad'],
 		trim: true,
 	}
 });

@@ -23,7 +23,7 @@ class NoticeController {
 					query.find({tags: {'$regex': tag, '$options': 'i'}});
 				} else {
 					//Tag não existe
-					throw new Error("A tag ("+tag+") não existe como uma tag de Notícias");
+					throw new Error("La etiqueta ("+tag+") no existe como etiqueta de noticias");
 				}
 			}
 
@@ -33,11 +33,11 @@ class NoticeController {
 				const page = parseInt(request.query.page);
 				//if page value is not a integer
 				if(!Number.isInteger(page)) {
-					throw new Error("Página deve ser um número");
+					throw new Error("La página debe ser un número");
 				}
 				//if page value is less than 1
 				if(page < 1) {
-					throw new Error("Página deve ser um número maior que 0");
+					throw new Error("La página debe ser un número mayor que 0");
 				}
 
 				const results = 30;
@@ -76,7 +76,7 @@ class NoticeController {
 	  					query.sort({views: 'desc'});
 						break;
 					default:
-						throw new Error(request.query.views+" não é uma data válida");
+						throw new Error(request.query.views+" no es una fecha valida");
 				}
 			} else {
 				query.sort({createdAt: 'desc'});
@@ -87,11 +87,11 @@ class NoticeController {
 
 			if (notices.length === 0) {
 				if(request.query.page) {
-					throw new Error("Nestá página não possui notícias");
+					throw new Error("Esta página no tiene noticias");
 				} else if(request.query.views) {
-					throw new Error("Não há Notícias Cadastradas dentro do espaço de tempo: "+request.query.views);
+					throw new Error("No hay noticias registradas dentro del período de tiempo: "+request.query.views);
 				} else {
-					throw new Error("Não há Notícias Cadastradas no Banco de Dados!");
+					throw new Error("¡No hay noticias registradas en la base de datos!");
 				}
 		    }
 
@@ -146,7 +146,7 @@ class NoticeController {
 			const userLogged = request.user.id;
 
 			if(typeof(tags) === "undefined") {
-				throw new Error("É necessário colocar pelo menos 1 tag");
+				throw new Error("Debes colocar al menos 1 etiqueta");
 			}
 			if(typeof(tags) === "string") {
 				tags = new Array(tags);
@@ -166,7 +166,7 @@ class NoticeController {
 			}
 
 			if(tagsNotFound.length) {
-				throw new Error("Tags: "+tagsNotFound.toString()+" não existem");
+				throw new Error("Etiquetas: "+tagsNotFound.toString()+" no existen");
 			}
 
 			validation.validateImage(request.files);
@@ -174,7 +174,7 @@ class NoticeController {
 		    const image = request.files.image;
 
 			if(!userLogged) {
-				throw new Error("É necessário estar logado para saber a quem é o autor deste Notice");
+				throw new Error("Debe iniciar sesión para saber quién publicó esta Noticia");
 			}
 
 		    //__basedir is a Global Variable that we assigned at our server.js that return the root path of the project
@@ -193,7 +193,7 @@ class NoticeController {
 		    //move the image to the path 'imagePath'
 		    image.mv(imagePath, function (err) {
 		        if (err) {
-		            throw new Error("Ocorreu um erro ao cadastrar a imagem");
+		            throw new Error("Hubo un error al registrar la imagen.");
 		        }
 		    });
 
@@ -214,7 +214,7 @@ class NoticeController {
 				.populate({ path: 'author', select: 'username -_id' });
 
 			if (!notice) {
-				throw new Error("Notícia não encontrada");
+				throw new Error("Noticias no encontradas");
 			}
 
 			//Se não estiver logado
@@ -250,11 +250,11 @@ class NoticeController {
 			const notice = await Notice.findById(request.params.id);
 
 			if(!notice) {
-				throw new Error("Notícia não encontrada");
+				throw new Error("Noticias no encontradas");
 			}
 
 			if(typeof(tags) === "undefined") {
-				throw new Error("É necessário colocar pelo menos 1 tag");
+				throw new Error("Debes colocar al menos 1 etiqueta");
 			}
 			if(typeof(tags) === "string") {
 				tags = new Array(tags);
@@ -274,7 +274,7 @@ class NoticeController {
 			}
 
 			if(tagsNotFound.length) {
-				throw new Error("Tags: "+tagsNotFound.toString()+" não existem");
+				throw new Error("Etiquetas: "+tagsNotFound.toString()+" no existen");
 			}
 
 			if (request.files) {
@@ -295,7 +295,7 @@ class NoticeController {
 			    //Adicionando a imagem nova
 			    image.mv(imagePath, function (err) {
 			        if (err) {
-			            throw new Error("Ocorreu um erro ao cadastrar a imagem");
+			            throw new Error("Hubo un error al registrar la imagen.");
 			        }
 			    });
 			}
@@ -321,14 +321,14 @@ class NoticeController {
 			const notice = await Notice.findById(request.params.id);
 			
 			if (!notice) {
-		        throw new Error("Notícia Não Existe!");
+		        throw new Error("¡La noticia no existe!");
 		    }
 
 		    await notice.remove();
 
 			return response.json({
 				success: true,
-				message: 'Notícia deletada'
+				message: 'Noticias eliminadas'
 			});
 		} catch (error) {
 			return response.status(400).json(handleErrors(error));

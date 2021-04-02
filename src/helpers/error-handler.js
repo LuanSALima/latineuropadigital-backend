@@ -1,9 +1,9 @@
 const handleError = (error) => {
-  let message = "Ocorreu um erro inesperado";
+  let message = "Ha ocurrido un error inesperado";
   let errors = {};
 
   if(error.name === "CastError") {
-    message = "ID buscado é inválido";
+    message = "El ID obtenido no es válido";
     errors = undefined;
   }
 
@@ -18,7 +18,7 @@ const handleError = (error) => {
   if (error.name === "MongoError" && error.code === 11000) {
     message = undefined;
 
-    errors[Object.keys(error.keyValue)] = Object.keys(error.keyValue)+" já cadastrado";
+    errors[Object.keys(error.keyValue)] = Object.keys(error.keyValue)+" ya registrado";
   }
 
   if (error.name === "Error") {
@@ -28,11 +28,11 @@ const handleError = (error) => {
   }
 
   if(error.code === 'ENOENT') {
-    message = "Não foi possível excluir pois não foi encontrada a imagem que será deletada!";
+    message = "¡No fue posible eliminar porque no se encontró la imagen a eliminar!";
     errors = undefined;
   }
 
-  if(message === "Ocorreu um erro inesperado"){
+  if(message === "Ha ocurrido un error inesperado"){
     console.log("====Ocorreu um Erro====");
     console.log(error);
   }

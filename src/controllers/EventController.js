@@ -23,7 +23,7 @@ class EventController {
 					query.find({tags: {'$regex': tag, '$options': 'i'}});
 				} else {
 					//Tag não existe
-					throw new Error("A tag ("+tag+") não existe como uma tag de Eventos");
+					throw new Error("La etiqueta ("+tag+") no existe como etiqueta de eventos");
 				}
 			}
 
@@ -33,11 +33,11 @@ class EventController {
 				const page = parseInt(request.query.page);
 				//if page value is not a integer
 				if(!Number.isInteger(page)) {
-					throw new Error("Página deve ser um número");
+					throw new Error("La página debe ser un número");
 				}
 				//if page value is less than 1
 				if(page < 1) {
-					throw new Error("Página deve ser um número maior que 0");
+					throw new Error("La página debe ser un número mayor que 0");
 				}
 
 				const results = 30;
@@ -76,7 +76,7 @@ class EventController {
 	  					query.sort({views: 'desc'});
 						break;
 					default:
-						throw new Error(request.query.views+" não é uma data válida");
+						throw new Error(request.query.views+" no es una fecha valida");
 				}
 			} else {
 				query.sort({createdAt: 'desc'});
@@ -87,11 +87,11 @@ class EventController {
 
 			if (events.length === 0) {
 				if(request.query.page) {
-					throw new Error("Nestá página não possui Eventos");
+					throw new Error("Esta página no tiene eventos");
 				} else if(request.query.views) {
-					throw new Error("Não há Eventos Cadastrados dentro do espaço de tempo: "+request.query.views);
+					throw new Error("No hay eventos registrados dentro del plazo: "+request.query.views);
 				} else {
-					throw new Error("Não há Eventos Cadastrados no Banco de Dados!");
+					throw new Error("¡No hay eventos registrados en la base de datos!");
 				}
 		    }
 
@@ -146,7 +146,7 @@ class EventController {
 			const userLogged = request.user.id;
 
 			if(typeof(tags) === "undefined") {
-				throw new Error("É necessário colocar pelo menos 1 tag");
+				throw new Error("Debes colocar al menos 1 etiqueta");
 			}
 			if(typeof(tags) === "string") {
 				tags = new Array(tags);
@@ -166,7 +166,7 @@ class EventController {
 			}
 
 			if(tagsNotFound.length) {
-				throw new Error("Tags: "+tagsNotFound.toString()+" não existem");
+				throw new Error("Etiquetas: "+tagsNotFound.toString()+" no existen");
 			}
 
 			validation.validateImage(request.files);
@@ -174,7 +174,7 @@ class EventController {
 		    const image = request.files.image;
 
 			if(!userLogged) {
-				throw new Error("É necessário estar logado para saber a quem pertence este Evento");
+				throw new Error("Debes iniciar sesión para saber quién publicó este evento");
 			}
 
 		    //__basedir is a Global Variable that we assigned at our server.js that return the root path of the project
@@ -193,7 +193,7 @@ class EventController {
 		    //move the image to the path 'imagePath'
 		    image.mv(imagePath, function (err) {
 		        if (err) {
-		            throw new Error("Ocorreu um erro ao cadastrar a imagem");
+		            throw new Error("Hubo un error al registrar la imagen.");
 		        }
 		    });
 
@@ -214,7 +214,7 @@ class EventController {
 				.populate({ path: 'author', select: 'username -_id' });
 
 			if (!event) {
-				throw new Error("Evento não encontrada");
+				throw new Error("Evento no encontrado");
 			}
 
 			//Se não estiver logado
@@ -250,11 +250,11 @@ class EventController {
 			const event = await Event.findById(request.params.id);
 
 			if(!event) {
-				throw new Error("Evento não encontrada");
+				throw new Error("Evento no encontrado");
 			}
 
 			if(typeof(tags) === "undefined") {
-				throw new Error("É necessário colocar pelo menos 1 tag");
+				throw new Error("Debes colocar al menos 1 etiqueta");
 			}
 			if(typeof(tags) === "string") {
 				tags = new Array(tags);
@@ -274,7 +274,7 @@ class EventController {
 			}
 
 			if(tagsNotFound.length) {
-				throw new Error("Tags: "+tagsNotFound.toString()+" não existem");
+				throw new Error("Etiquetas: "+tagsNotFound.toString()+" no existen");
 			}
 
 			if (request.files) {
@@ -295,7 +295,7 @@ class EventController {
 			    //Adicionando a imagem nova
 			    image.mv(imagePath, function (err) {
 			        if (err) {
-			            throw new Error("Ocorreu um erro ao cadastrar a imagem");
+			            throw new Error("Hubo un error al registrar la imagen.");
 			        }
 			    });
 			}
@@ -321,14 +321,14 @@ class EventController {
 			const event = await Event.findById(request.params.id);
 			
 			if (!event) {
-		        throw new Error("Evento Não Existe!");
+		        throw new Error("¡El evento no existe!");
 		    }
 
 		    await event.remove();
 
 			return response.json({
 				success: true,
-				message: 'Evento deletado'
+				message: 'Evento eliminado'
 			});
 		} catch (error) {
 			return response.status(400).json(handleErrors(error));

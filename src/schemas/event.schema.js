@@ -9,26 +9,26 @@ const eventSchema = new Schema({
 	author: {
 		type: Schema.Types.ObjectId,
 		ref: "User",
-		required: [true, 'É necessário informar quem publicou este Evento'],
+		required: [true, 'Es necesario informar quien publicó este evento'],
 	},
 	title: {
 		type: String,
-		required: [true, 'É necessário informar o título do Evento'],
+		required: [true, 'Es necesario informar el título de este evento'],
 		trim: true,
 	},
 	subtitle: {
 		type: String,
-		required: [true, 'É necessário informar o subtítulo do Evento'],
+		required: [true, 'Es necesario informar el subtítulo de este evento'],
 		trim: true
 	},
 	content: {
 		type: String,
-		required: [true, 'É necessário informar o conteudo do Evento'],
+		required: [true, 'Es necesario informar el contenido de este evento'],
 		trim: true
 	},
 	imagePath: {
 		type: String,
-		required: [true, 'É necessário cadastrar uma imagem do Evento']
+		required: [true, 'Es necesario informar una imagen de este evento']
 	},
 	tags: [{
 		type: Schema.Types.ObjectId,

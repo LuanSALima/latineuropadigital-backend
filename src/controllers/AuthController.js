@@ -15,11 +15,11 @@ class AuthController {
 			const user = await User.findOne({ email }).select('+password');
 
 			if (!user) {
-				throw new Error("Usuário não encontrado");
+				throw new Error("Usuario no encontrado");
 			}
 
 			if (!(await bcrypt.compare(password, user.password))) {
-				throw new Error("Senha incorreta");
+				throw new Error("Contraseña incorrecta");
 			}
 
 			user.password = undefined;

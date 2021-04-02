@@ -9,26 +9,26 @@ const noticeSchema = new Schema({
 	author: {
 		type: Schema.Types.ObjectId,
 		ref: "User",
-		required: [true, 'É necessário informar quem publicou esta Notícia'],
+		required: [true, 'Es necesario informar quien publicó esta noticia'],
 	},
 	title: {
 		type: String,
-		required: [true, 'É necessário informar o título da Notícia'],
+		required: [true, 'Es necesario informar el título de la noticia'],
 		trim: true,
 	},
 	subtitle: {
 		type: String,
-		required: [true, 'É necessário informar o subtítulo da Notícia'],
+		required: [true, 'Es necesario informar el subtítulo de la noticia'],
 		trim: true
 	},
 	content: {
 		type: String,
-		required: [true, 'É necessário informar o conteudo da Notícia'],
+		required: [true, 'Es necesario informar el contenido de la noticia'],
 		trim: true
 	},
 	imagePath: {
 		type: String,
-		required: [true, 'É necessário cadastrar uma imagem da Notícia']
+		required: [true, 'Es necesario informar una imagen de la noticia']
 	},
 	tags: [{
 		type: Schema.Types.ObjectId,

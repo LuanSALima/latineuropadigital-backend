@@ -13,19 +13,19 @@ module.exports = (roles = []) => {
 	    		if(jwt.checkToken(request)) {
 	    			if(roles.length && !roles.includes(request.user.role)) {
 		    			// user's role is not authorized
-	                	return response.status(401).json({ success: false, message: 'Você não possui permissão para acessar esta função' });
+	                	return response.status(401).json({ success: false, message: 'No tienes permiso para acceder a esta función' });
 		    		}
 		    		// authentication and authorization successful
             		next();
 	    		} else {
-	    			return response.status(401).json({success: false, message: "É necessário estar logado para realizar esta função"});
+	    			return response.status(401).json({success: false, message: "Debes iniciar sesión para realizar esta función"});
 	    		}
 	    	}
 	    ];
 	} catch (error) {
 		return response.status(400).json({
 			success: false,
-			message: "Erro no Middleware: "+error.message
+			message: "Error de middleware: "+error.message
 		})
 	}
 };

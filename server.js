@@ -21,7 +21,7 @@ app.use(express.static('public'));
 
 const uri = process.env.MONGO_URL;
 mongoose.connect(uri, { useNewUrlParser: true, useCreateIndex: true, useUnifiedTopology: true})
-	.catch(err => console.log('Erro ao Conectar ao MongoDB: ' + err));
+	.catch(err => console.log('Error al conectarse a MongoDB: ' + err));
 
 const connection = mongoose.connection;
 connection.once('open', () => {

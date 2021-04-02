@@ -7,7 +7,7 @@ class UserController {
 		try {
 	      const users = await User.find();
 	      if (users.length === 0) {
-	        throw new Error("Não há Usuários Cadastrados no Banco de Dados!");
+	        throw new Error("¡No hay usuarios registrados en la base de datos!");
 	      }
 
 	      return response.status(200).json({
@@ -46,7 +46,7 @@ class UserController {
 			const user = await User.findById(request.params.id);
 
 			if (!user) {
-				throw new Error("Usuário não encontrado");
+				throw new Error("Usuario no encontrado");
 			}
 
 			return response.json({
@@ -63,12 +63,12 @@ class UserController {
 			const user = await User.findByIdAndDelete(request.params.id);
 			
 			if (!user) {
-		        throw new Error("Usuário Não Existe!");
+		        throw new Error("¡El usuario no existe!");
 		     }
 
 			return response.json({
 				success: true,
-				message: 'Usuário deletado!'
+				message: '¡Usuario eliminado!'
 			});
 
 		} catch (error) {
@@ -83,7 +83,7 @@ class UserController {
 			const user = await User.findById(request.params.id).select("+password");
 
 			if (!user) {
-				throw new Error("Usuário não encontrado");
+				throw new Error("Usuario no encontrado");
 			}
 
 			if(password) {
@@ -105,7 +105,7 @@ class UserController {
 				
 			return response.json({
 				success: true,
-				message: 'Usuário atualizado!'
+				message: 'Usuario actualizado!'
 			});
 
 		} catch (error) {

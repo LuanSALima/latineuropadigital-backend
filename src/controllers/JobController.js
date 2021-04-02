@@ -10,7 +10,7 @@ class JobController {
 			const jobs = await Job.find({status: 'accepted'}).populate({ path: 'jobTypes', select: 'title -_id' }).lean();
 
 			if (jobs.length === 0) {
-		        throw new Error("Não há Trabalhos Aceitos no Banco de Dados!");
+		        throw new Error("¡No hay trabajos aceptados en la base de datos!");
 		    }
 
 		    for(const job of jobs) {
@@ -35,7 +35,7 @@ class JobController {
 			const jobs = await Job.find().populate({ path: 'jobTypes', select: 'title -_id' }).lean();
 
 			if (jobs.length === 0) {
-		        throw new Error("Não há Trabalhos Cadastrados no Banco de Dados!");
+		        throw new Error("¡No hay trabajos registrados en la base de datos!");
 		    }
 
 		    for(const job of jobs) {
@@ -60,7 +60,7 @@ class JobController {
 			const jobs = await Job.find({status: request.params.status}).populate({ path: 'jobTypes', select: 'title -_id' }).lean();
 
 			if (jobs.length === 0) {
-		        throw new Error("Não há Trabalhos "+(request.params.status)+" no Banco de Dados!");
+		        throw new Error("¡No hay trabajos "+(request.params.status)+" en la base de datos!");
 		    }
 
 		    for(const job of jobs) {
@@ -85,7 +85,7 @@ class JobController {
 			const { professionalName, professionalContact, title, description, jobTypes } = request.body;
 
 		    if(typeof(jobTypes) === "undefined") {
-				throw new Error("É necessário colocar pelo menos 1 tipo trabalho");
+				throw new Error("Es necesario poner al menos 1 tipo de obra");
 			}
 			if(typeof(jobTypes) === "string") {
 				jobTypes = new Array(jobTypes);
@@ -106,7 +106,7 @@ class JobController {
 			}
 
 			if(jobTypesNotFound.length) {
-				throw new Error("Tipos de Trbalhos: "+jobTypesNotFound.toString()+" não existem");
+				throw new Error("Tipos de trabajo: "+tipo de trabajo no encontrado.ToString()+" no existe");
 			}
 
 			const job = await Job.create({
@@ -133,7 +133,7 @@ class JobController {
 			const job = await Job.findById(request.params.id).populate({ path: 'jobTypes', select: 'title -_id' });
 
 			if (!job) {
-				throw new Error("Trabalho não encontrado");
+				throw new Error("Trabajo no encontrado");
 			}
 
 			const jobJSON = job.toJSON();
@@ -160,11 +160,11 @@ class JobController {
 			const job = await Job.findById(request.params.id);
 
 			if(!job) {
-				throw new Error("Publicação não encontrada");
+				throw new Error("Trabajo no encontrado");
 			}
 
 			if(typeof(jobTypes) === "undefined") {
-				throw new Error("É necessário colocar pelo menos 1 tipo trabalho");
+				throw new Error("Es necesario poner al menos 1 tipo de obra");
 			}
 			if(typeof(jobTypes) === "string") {
 				jobTypes = new Array(jobTypes);
@@ -185,13 +185,13 @@ class JobController {
 			}
 
 			if(jobTypesNotFound.length) {
-				throw new Error("Tipos de Trbalhos: "+jobTypesNotFound.toString()+" não existem");
+				throw new Error("Tipos de trabajo: "+tipo de trabajo no encontrado.ToString()+" no existe");
 			}
 
 			const validStatus = ["pendent", "accepted"];
 
 			if(validStatus.indexOf(status) === -1){
-				throw new Error("Status inválido");
+				throw new Error("Estado inválido");
 			}
 
 			job.professionalName = professionalName;
@@ -218,14 +218,14 @@ class JobController {
 			const job = await Job.findById(request.params.id);
 			
 			if (!job) {
-		        throw new Error("Trabalho não Encontrado");
+		        throw new Error("Trabajo no encontrado");
 		    }
 
 			await job.remove();
 
 			return response.json({
 				success: true,
-				message: 'Trabalho deletado'
+				message: 'Trabajo eliminado'
 			});
 		} catch (error) {
 			return response.status(400).json(handleErrors(error));
@@ -238,7 +238,7 @@ class JobController {
       
 			return response.status(200).json({
 				success: true,
-				message: "Todas as oportunidades foram deletadas"
+				message: "Todas las oportunidades han sido eliminadas"
 			});
 		} catch (error) {
 			return response.status(400).json(handleErrors(error));

@@ -8,20 +8,20 @@ const Schema = mongoose.Schema;
 const userSchema = new Schema({
 	username: {
 		type: String,
-		required: [true, 'É necessário informar o nome do usuário'],
+		required: [true, 'Es necesario informar el nombre de usuario'],
 		unique: true,
 		trim: true,
 		minlength: 3
 	},
 	email: {
 		type: String,
-		required: [true, 'É necessário informar o email'],
+		required: [true, 'Es necesario informar al correo electrónico'],
 		unique: true,
 		trim: true,
 		lowercase: true,
 		validate: {
 			validator: validator.isEmail,
-			message: '{VALUE} não é um email válido',
+			message: '{VALUE} no es un email valido',
 			isAsync: false
 		}
 	},
@@ -33,7 +33,7 @@ const userSchema = new Schema({
 	},
 	password: {
 		type: String,
-		required: [true, 'É necessário informar a senha'],
+		required: [true, 'Es necesario informar la contraseña'],
 		trim: true,
 		minlength: 3,
 		select: false,
@@ -49,7 +49,8 @@ const userSchema = new Schema({
 	},
 	role: {
 		type: String,
-		required: [true, "É necessário informar o tipo de Usuário"]
+		enum: ['Admin', 'User'],
+		required: [true, 'Es necesario informar el tipo de usuario']
 	}
 }, {
 	timestamps: true,
