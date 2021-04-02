@@ -35,7 +35,8 @@ class UserController {
 			return response
 				.status(200)
 				.json({
-					success: true
+					success: true,
+					message: 'Usuário Criado'
 				});
 			
 		} catch (error) {
