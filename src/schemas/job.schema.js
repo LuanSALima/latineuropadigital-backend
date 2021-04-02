@@ -6,32 +6,33 @@ const Schema = mongoose.Schema;
 const jobSchema = new Schema({
 	professionalName: {
 		type: String,
-		required: [true, 'É necessário informar o nome do profissional'],
+		required: [true, 'Es necesario informar el nombre del profesional'],
 		trim: true,
 	},
 	professionalContact: {
 		type: String,
-		required: [true, 'É necessário informar os contatos do profissional'],
+		required: [true, 'Es necesario informar los contactos del profesional'],
 		trim: true,
 	},
 	title: {
 		type: String,
-		required: [true, 'É necessário informar o título'],
+		required: [true, 'Es necesario informar el título de la oportunidad'],
 		trim: true,
 	},
 	description: {
 		type: String,
-		required: [true, 'É necessário informar a descrição'],
+		required: [true, 'Es necesario informar la descripción de la oportunidad'],
 		trim: true
 	},
 	status: {
 		type: String,
-		required: [true, 'É necessário saber qual o status da Oportunidade']
+		enum: ['accepted', 'pendent'],
+		required: [true, 'Es necesario informar cuál es el estado de la oportunidad']
 	},
-	jobTypes: {
-		type: [String],
-		required: [true, 'É necessário informar os tipos de trabalhos']
-	}
+	jobTypes: [{
+		type: Schema.Types.ObjectId,
+		ref: "JobType"
+	}]
 }, {
 	timestamps: true,
 });

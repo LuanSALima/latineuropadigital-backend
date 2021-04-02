@@ -6,28 +6,33 @@ const fileSystem = require('fs');
 const Schema = mongoose.Schema;
 
 const courseSchema = new Schema({
-	owner: {
-		type: String,
-		required: [true, 'É necessário informar quem publicou este Courseo'],
+	author: {
+		type: Schema.Types.ObjectId,
+		ref: "User",
+		required: [true, 'Es necesario informar quien publicó este curso'],
 	},
 	title: {
 		type: String,
-		required: [true, 'É necessário informar o título do Courseo'],
+		required: [true, 'Es necesario informar el título de este curso'],
 		trim: true,
 	},
 	subtitle: {
 		type: String,
-		required: [true, 'É necessário informar o subtítulo do Courseo'],
+		required: [true, 'Es necesario informar el subtítulo de este curso'],
 		trim: true
 	},
 	content: {
 		type: String,
-		required: [true, 'É necessário informar o conteudo do Courseo'],
+		required: [true, 'Es necesario informar el contenido de este curso'],
 		trim: true
 	},
 	imagePath: {
 		type: String,
-		required: [true, 'É necessário cadastrar uma imagem do Courseo']
+		required: [true, 'Es necesario informar una imagen de este curso']
+	},
+	link: {
+		type: String,
+		required: [true, 'Es necesario informar o link']
 	},
 	tags: [{
 		type: Schema.Types.ObjectId,

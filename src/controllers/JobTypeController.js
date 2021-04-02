@@ -8,7 +8,7 @@ class JobTypeController {
 			const jobTypes = await JobType.find({}, {_id: 1, title: 1, description: 1});
 
 			if (jobTypes.length === 0) {
-		        throw new Error("Não há Tipos de Oportunidades Cadastradas no Banco de Dados!");
+		        throw new Error("¡No hay tipos de oportunidades registradas en la base de datos!");
 		    }
 
 			return response.status(200).json({
@@ -44,7 +44,7 @@ class JobTypeController {
 			const jobType = await JobType.findById(request.params.id);
 
 			if (!jobType) {
-				throw new Error("Tipo de Trabalho não encontrado");
+				throw new Error("Tipo de trabajo no encontrado");
 			}
 
 			return response.json({
@@ -63,7 +63,7 @@ class JobTypeController {
 			const jobType = await JobType.findById(request.params.id);
 
 			if(!jobType) {
-				throw new Error("Tipo de Trabalho não encontrado");
+				throw new Error("Tipo de trabajo no encontrado");
 			}
 
 			jobType.title = title;
@@ -86,14 +86,14 @@ class JobTypeController {
 			const jobType = await JobType.findById(request.params.id);
 			
 			if (!jobType) {
-		        throw new Error("Tipo de Trabalho não Encontrado");
+		        throw new Error("Tipo de trabajo no encontrado");
 		    }
 
 			await jobType.remove();
 
 			return response.json({
 				success: true,
-				message: 'Tipo de Trabalho deletado'
+				message: 'Tipo de trabajo eliminado'
 			});
 		} catch (error) {
 			return response.status(400).json(handleErrors(error));
@@ -106,7 +106,7 @@ class JobTypeController {
       
 			return response.status(200).json({
 				success: true,
-				message: "Todos os Tipos de Trabalhos foram deletados"
+				message: "Se han eliminado todos los tipos de trabajo"
 			});
 		} catch (error) {
 			return response.status(400).json(handleErrors(error));

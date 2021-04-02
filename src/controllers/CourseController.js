@@ -1,5 +1,6 @@
 let Course = require('../schemas/course.schema');
 let Tags = require('../schemas/tags.schema');
+let Featured = require('../schemas/featured.schema');
 
 const handleErrors = require('../helpers/error-handler');
 const validation = require('../helpers/validation');
@@ -14,6 +15,7 @@ class CourseController {
 			const query = Course.find();
 
 			query.populate({ path: 'tags', select: 'title -_id' });
+			query.populate({ path: 'author', select: 'username -_id'});
 
 			if(request.query.tag) {
 				const tag = request.query.tag;
@@ -22,7 +24,7 @@ class CourseController {
 					query.find({tags: {'$regex': tag, '$options': 'i'}});
 				} else {
 					//Tag não existe
-					throw new Error("A tag ("+tag+") não existe como uma tag de Cursos");
+					throw new Error("La etiqueta ("+tag+") no existe como etiqueta de curso");
 				}
 			}
 
@@ -32,11 +34,11 @@ class CourseController {
 				const page = parseInt(request.query.page);
 				//if page value is not a integer
 				if(!Number.isInteger(page)) {
-					throw new Error("Página deve ser um número");
+					throw new Error("La página debe ser un número");
 				}
 				//if page value is less than 1
 				if(page < 1) {
-					throw new Error("Página deve ser um número maior que 0");
+					throw new Error("La página debe ser un número mayor que 0");
 				}
 
 				const results = 30;
@@ -75,7 +77,7 @@ class CourseController {
 	  					query.sort({views: 'desc'});
 						break;
 					default:
-						throw new Error(request.query.views+" não é uma data válida");
+						throw new Error(request.query.views+" no es una fecha valida");
 				}
 			} else {
 				query.sort({createdAt: 'desc'});
@@ -86,11 +88,11 @@ class CourseController {
 
 			if (courses.length === 0) {
 				if(request.query.page) {
-					throw new Error("Nestá página não possui Cursos");
+					throw new Error("Esta página no tiene cursos");
 				} else if(request.query.views) {
-					throw new Error("Não há Cursos Cadastrados dentro do espaço de tempo: "+request.query.views);
+					throw new Error("No hay cursos registrados dentro del marco de tiempo: "+request.query.views);
 				} else {
-					throw new Error("Não há Cursos Cadastrados no Banco de Dados!");
+					throw new Error("¡No hay cursos registrados en la base de datos!");
 				}
 		    }
 
@@ -99,7 +101,18 @@ class CourseController {
 		    	for(const tag of course.tags) {
 		    		tags.push(tag.title);
 		    	}
-		    	course.tags = tags; //Instead of sending a array of objects, send a array of strings
+
+		    	if(course.tags) {
+		    		course.tags = tags; //Instead of sending a array of objects, send a array of strings
+		    	} else {
+		    		course.tags = ['Etiquetas excluidas'];
+		    	}
+
+		    	if(course.author) {
+		    		course.author = course.author.username; //Instead of sending a object of user, send the username
+		    	} else {
+		    		course.author = 'Autor eliminado';
+		    	}
 		    }
 
 		    const totalCourses = await Course.countDocuments({});
@@ -138,13 +151,13 @@ class CourseController {
 
 	async create(request, response) {
 		try {
-			const { title, subtitle, content } = request.body;
+			const { title, subtitle, content, link } = request.body;
 			let {tags} = request.body;
 			
-			const owner = request.user.id;
+			const loggedUser = request.user.id;
 
 			if(typeof(tags) === "undefined") {
-				throw new Error("É necessário colocar pelo menos 1 tag");
+				throw new Error("Debes colocar al menos 1 etiqueta");
 			}
 			if(typeof(tags) === "string") {
 				tags = new Array(tags);
@@ -164,15 +177,15 @@ class CourseController {
 			}
 
 			if(tagsNotFound.length) {
-				throw new Error("Tags: "+tagsNotFound.toString()+" não existem");
+				throw new Error("Etiquetas: "+tagsNotFound.toString()+" no existen");
 			}
 
 			validation.validateImage(request.files);
 
 		    const image = request.files.image;
 
-			if(!owner) {
-				throw new Error("É necessário estar logado para saber a quem pertence este Curso");
+			if(!loggedUser) {
+				throw new Error("Debes iniciar sesión para saber a quién publico este curso");
 			}
 
 		    //__basedir is a Global Variable that we assigned at our server.js that return the root path of the project
@@ -180,18 +193,19 @@ class CourseController {
 		    const imagePath = `${__basedir}/public/images/courses/${imageName}`;
 
 			const course = await Course.create({
-				owner,
+				author: loggedUser,
 				title,
 				subtitle,
 				content,
 				imagePath: '/images/courses/'+imageName,
+				link,
 				tags: idTags
 			});
 
 		    //move the image to the path 'imagePath'
 		    image.mv(imagePath, function (err) {
 		        if (err) {
-		            throw new Error("Ocorreu um erro ao cadastrar a imagem");
+		            throw new Error("Hubo un error al registrar la imagen");
 		        }
 		    });
 
@@ -207,10 +221,12 @@ class CourseController {
 
 	async find(request, response) {
 		try {
-			const course = await Course.findById(request.params.id).populate({ path: 'tags', select: 'title -_id' });
+			const course = await Course.findById(request.params.id)
+				.populate({ path: 'tags', select: 'title -_id' })
+				.populate({ path: 'author', select: 'username -_id' });
 
 			if (!course) {
-				throw new Error("Curso não encontrada");
+				throw new Error("Curso no encontrado");
 			}
 
 			//Se não estiver logado
@@ -225,10 +241,24 @@ class CourseController {
 	    	for(const tag of courseJSON.tags) {
 	    		tags.push(tag.title);
 	    	}
-	    	courseJSON.tags = tags; //Instead of sending a array of objects, send a array of strings
+
+	    	if(courseJSON.tags) {
+	    		courseJSON.tags = tags; //Instead of sending a array of objects, send a array of strings
+	    	} else {
+	    		courseJSON.tags = ['Etiquetas excluidas'];
+	    	}
+
+	    	if(courseJSON.author) {
+	    		courseJSON.author = courseJSON.author.username; //Instead of sending a object of user, send the username
+	    	} else {
+	    		courseJSON.author = 'Autor eliminado';
+	    	}
+
+	    	const featured = await Featured.findOne({post: courseJSON._id});
 
 			return response.json({
 				success: true,
+				featured,
 				course: courseJSON
 			});
 		} catch (error) {
@@ -239,17 +269,17 @@ class CourseController {
 	async update(request, response) {
 		try {
 
-			const { title, subtitle, content } = request.body;
+			const { title, subtitle, content, link } = request.body;
 			let {tags} = request.body;
 
 			const course = await Course.findById(request.params.id);
 
 			if(!course) {
-				throw new Error("Curso não encontrada");
+				throw new Error("Curso no encontrado");
 			}
 
 			if(typeof(tags) === "undefined") {
-				throw new Error("É necessário colocar pelo menos 1 tag");
+				throw new Error("Debes colocar al menos 1 etiqueta");
 			}
 			if(typeof(tags) === "string") {
 				tags = new Array(tags);
@@ -269,7 +299,7 @@ class CourseController {
 			}
 
 			if(tagsNotFound.length) {
-				throw new Error("Tags: "+tagsNotFound.toString()+" não existem");
+				throw new Error("Etiquetas: "+tagsNotFound.toString()+" no existen");
 			}
 
 			if (request.files) {
@@ -290,7 +320,7 @@ class CourseController {
 			    //Adicionando a imagem nova
 			    image.mv(imagePath, function (err) {
 			        if (err) {
-			            throw new Error("Ocorreu um erro ao cadastrar a imagem");
+			            throw new Error("Hubo un error al registrar la imagen");
 			        }
 			    });
 			}
@@ -298,6 +328,7 @@ class CourseController {
 			course.title = title;
 			course.subtitle = subtitle;
 			course.content = content;
+			course.link = link;
 			course.tags = idTags;
 
 			await course.save();
@@ -316,14 +347,14 @@ class CourseController {
 			const course = await Course.findById(request.params.id);
 			
 			if (!course) {
-		        throw new Error("Curso Não Existe!");
+		        throw new Error("¡El curso no existe!");
 		    }
 
 		    await course.remove();
 
 			return response.json({
 				success: true,
-				message: 'Curso deletado'
+				message: 'Curso eliminado'
 			});
 		} catch (error) {
 			return response.status(400).json(handleErrors(error));

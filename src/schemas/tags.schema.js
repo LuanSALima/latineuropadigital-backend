@@ -6,17 +6,18 @@ const Schema = mongoose.Schema;
 const tagSchema = new Schema({
 	title: {
 		type: String,
-		required: [true, 'É necessário informar o nome da Tag'],
+		required: [true, 'Es necesario informar el nombre de la etiqueta'],
 		trim: true,
 	},
 	description: {
 		type: String,
-		required: [true, 'É necessário informar a descrição da Tag'],
+		required: [true, 'Es necesario informar la descripción de la etiqueta'],
 		trim: true,
 	},
 	types: {
 		type: [String],
-		required: [true, 'É necessário informar que para que tipo de Publicação esta Tag pertence']
+		enum: ['Notice', 'Directory', 'Event', 'Course'],
+		required: [true, 'Es necesario informar a qué tipo de publicación pertenece esta etiqueta']
 	}
 });
 

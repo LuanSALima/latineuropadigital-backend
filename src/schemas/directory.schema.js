@@ -6,28 +6,33 @@ const fileSystem = require('fs');
 const Schema = mongoose.Schema;
 
 const directorySchema = new Schema({
-	owner: {
-		type: String,
-		required: [true, 'É necessário informar quem publicou este Diretório'],
+	author: {
+		type: Schema.Types.ObjectId,
+		ref: "User",
+		required: [true, 'Es necesario informar quien publicó este directorio'],
 	},
 	title: {
 		type: String,
-		required: [true, 'É necessário informar o título do Diretório'],
+		required: [true, 'Es necesario informar el título de este directorio'],
 		trim: true,
 	},
 	subtitle: {
 		type: String,
-		required: [true, 'É necessário informar o subtítulo do Diretório'],
+		required: [true, 'Es necesario informar el subtítulo de este directorio'],
 		trim: true
 	},
 	content: {
 		type: String,
-		required: [true, 'É necessário informar o conteudo do Diretório'],
+		required: [true, 'Es necesario informar el contenido de este directorio'],
 		trim: true
 	},
 	imagePath: {
 		type: String,
-		required: [true, 'É necessário cadastrar uma imagem do Diretório']
+		required: [true, 'Es necesario informar una imagen de este directorio']
+	},
+	link: {
+		type: String,
+		required: [true, 'Es necesario informar o link']
 	},
 	tags: [{
 		type: Schema.Types.ObjectId,

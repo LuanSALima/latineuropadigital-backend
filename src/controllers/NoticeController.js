@@ -1,5 +1,6 @@
 let Notice = require('../schemas/notice.schema');
 let Tags = require('../schemas/tags.schema');
+let Featured = require('../schemas/featured.schema');
 
 const handleErrors = require('../helpers/error-handler');
 const validation = require('../helpers/validation');
@@ -14,6 +15,7 @@ class NoticeController {
 			const query = Notice.find();
 
 			query.populate({ path: 'tags', select: 'title -_id' });
+			query.populate({ path: 'author', select: 'username -_id'});
 
 			if(request.query.tag) {
 				const tag = request.query.tag;
@@ -22,7 +24,7 @@ class NoticeController {
 					query.find({tags: {'$regex': tag, '$options': 'i'}});
 				} else {
 					//Tag não existe
-					throw new Error("A tag ("+tag+") não existe como uma tag de Notícias");
+					throw new Error("La etiqueta ("+tag+") no existe como etiqueta de noticias");
 				}
 			}
 
@@ -32,11 +34,11 @@ class NoticeController {
 				const page = parseInt(request.query.page);
 				//if page value is not a integer
 				if(!Number.isInteger(page)) {
-					throw new Error("Página deve ser um número");
+					throw new Error("La página debe ser un número");
 				}
 				//if page value is less than 1
 				if(page < 1) {
-					throw new Error("Página deve ser um número maior que 0");
+					throw new Error("La página debe ser un número mayor que 0");
 				}
 
 				const results = 30;
@@ -75,7 +77,7 @@ class NoticeController {
 	  					query.sort({views: 'desc'});
 						break;
 					default:
-						throw new Error(request.query.views+" não é uma data válida");
+						throw new Error(request.query.views+" no es una fecha valida");
 				}
 			} else {
 				query.sort({createdAt: 'desc'});
@@ -86,11 +88,11 @@ class NoticeController {
 
 			if (notices.length === 0) {
 				if(request.query.page) {
-					throw new Error("Nestá página não possui notícias");
+					throw new Error("Esta página no tiene noticias");
 				} else if(request.query.views) {
-					throw new Error("Não há Notícias Cadastradas dentro do espaço de tempo: "+request.query.views);
+					throw new Error("No hay noticias registradas dentro del período de tiempo: "+request.query.views);
 				} else {
-					throw new Error("Não há Notícias Cadastradas no Banco de Dados!");
+					throw new Error("¡No hay noticias registradas en la base de datos!");
 				}
 		    }
 
@@ -99,7 +101,19 @@ class NoticeController {
 		    	for(const tag of notice.tags) {
 		    		tags.push(tag.title);
 		    	}
-		    	notice.tags = tags; //Instead of sending a array of objects, send a array of strings
+
+		    	if(notice.tags) {
+		    		notice.tags = tags; //Instead of sending a array of objects, send a array of strings
+		    	} else {
+		    		notice.tags = ['Etiquetas excluidas'];
+		    	}
+
+		    	if(notice.author) {
+		    		notice.author = notice.author.username; //Instead of sending a object of user, send the username
+		    	} else {
+		    		notice.author = 'Autor eliminado';
+		    	}
+		    	
 		    }
 
 		    const totalNotices = await Notice.countDocuments({});
@@ -138,13 +152,13 @@ class NoticeController {
 
 	async create(request, response) {
 		try {
-			const { title, subtitle, content } = request.body;
+			const { title, subtitle, content, link } = request.body;
 			let {tags} = request.body;
 			
-			const owner = request.user.id;
+			const userLogged = request.user.id;
 
 			if(typeof(tags) === "undefined") {
-				throw new Error("É necessário colocar pelo menos 1 tag");
+				throw new Error("Debes colocar al menos 1 etiqueta");
 			}
 			if(typeof(tags) === "string") {
 				tags = new Array(tags);
@@ -164,15 +178,15 @@ class NoticeController {
 			}
 
 			if(tagsNotFound.length) {
-				throw new Error("Tags: "+tagsNotFound.toString()+" não existem");
+				throw new Error("Etiquetas: "+tagsNotFound.toString()+" no existen");
 			}
 
 			validation.validateImage(request.files);
 
 		    const image = request.files.image;
 
-			if(!owner) {
-				throw new Error("É necessário estar logado para saber a quem pertence este Notice");
+			if(!userLogged) {
+				throw new Error("Debe iniciar sesión para saber quién publicó esta Noticia");
 			}
 
 		    //__basedir is a Global Variable that we assigned at our server.js that return the root path of the project
@@ -180,18 +194,19 @@ class NoticeController {
 		    const imagePath = `${__basedir}/public/images/notices/${imageName}`;
 
 			const notice = await Notice.create({
-				owner,
+				author: userLogged,
 				title,
 				subtitle,
 				content,
 				imagePath: '/images/notices/'+imageName,
+				link,
 				tags: idTags
 			});
 
 		    //move the image to the path 'imagePath'
 		    image.mv(imagePath, function (err) {
 		        if (err) {
-		            throw new Error("Ocorreu um erro ao cadastrar a imagem");
+		            throw new Error("Hubo un error al registrar la imagen.");
 		        }
 		    });
 
@@ -207,10 +222,12 @@ class NoticeController {
 
 	async find(request, response) {
 		try {
-			const notice = await Notice.findById(request.params.id).populate({ path: 'tags', select: 'title -_id' });
+			const notice = await Notice.findById(request.params.id)
+				.populate({ path: 'tags', select: 'title -_id' })
+				.populate({ path: 'author', select: 'username -_id' });
 
 			if (!notice) {
-				throw new Error("Notícia não encontrada");
+				throw new Error("Noticias no encontradas");
 			}
 
 			//Se não estiver logado
@@ -225,10 +242,24 @@ class NoticeController {
 	    	for(const tag of noticeJSON.tags) {
 	    		tags.push(tag.title);
 	    	}
-	    	noticeJSON.tags = tags; //Instead of sending a array of objects, send a array of strings
+
+	    	if(noticeJSON.tags) {
+	    		noticeJSON.tags = tags; //Instead of sending a array of objects, send a array of strings
+	    	} else {
+	    		noticeJSON.tags = ['Etiquetas excluidas'];
+	    	}
+
+	    	if(noticeJSON.author) {
+	    		noticeJSON.author = noticeJSON.author.username; //Instead of sending a object of user, send the username
+	    	} else {
+	    		noticeJSON.author = 'Autor eliminado';
+	    	}
+	    	
+	    	const featured = await Featured.findOne({post: noticeJSON._id});
 
 			return response.json({
 				success: true,
+				featured,
 				notice: noticeJSON
 			});
 		} catch (error) {
@@ -239,17 +270,17 @@ class NoticeController {
 	async update(request, response) {
 		try {
 
-			const { title, subtitle, content } = request.body;
+			const { title, subtitle, content, link } = request.body;
 			let {tags} = request.body;
 
 			const notice = await Notice.findById(request.params.id);
 
 			if(!notice) {
-				throw new Error("Notícia não encontrada");
+				throw new Error("Noticias no encontradas");
 			}
 
 			if(typeof(tags) === "undefined") {
-				throw new Error("É necessário colocar pelo menos 1 tag");
+				throw new Error("Debes colocar al menos 1 etiqueta");
 			}
 			if(typeof(tags) === "string") {
 				tags = new Array(tags);
@@ -269,7 +300,7 @@ class NoticeController {
 			}
 
 			if(tagsNotFound.length) {
-				throw new Error("Tags: "+tagsNotFound.toString()+" não existem");
+				throw new Error("Etiquetas: "+tagsNotFound.toString()+" no existen");
 			}
 
 			if (request.files) {
@@ -290,7 +321,7 @@ class NoticeController {
 			    //Adicionando a imagem nova
 			    image.mv(imagePath, function (err) {
 			        if (err) {
-			            throw new Error("Ocorreu um erro ao cadastrar a imagem");
+			            throw new Error("Hubo un error al registrar la imagen.");
 			        }
 			    });
 			}
@@ -298,6 +329,7 @@ class NoticeController {
 			notice.title = title;
 			notice.subtitle = subtitle;
 			notice.content = content;
+			notice.link = link;
 			notice.tags = idTags;
 
 			await notice.save();
@@ -316,14 +348,14 @@ class NoticeController {
 			const notice = await Notice.findById(request.params.id);
 			
 			if (!notice) {
-		        throw new Error("Notícia Não Existe!");
+		        throw new Error("¡La noticia no existe!");
 		    }
 
 		    await notice.remove();
 
 			return response.json({
 				success: true,
-				message: 'Notícia deletada'
+				message: 'Noticias eliminadas'
 			});
 		} catch (error) {
 			return response.status(400).json(handleErrors(error));

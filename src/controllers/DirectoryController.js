@@ -1,5 +1,6 @@
 let Directory = require('../schemas/directory.schema');
 let Tags = require('../schemas/tags.schema');
+let Featured = require('../schemas/featured.schema');
 
 const handleErrors = require('../helpers/error-handler');
 const validation = require('../helpers/validation');
@@ -14,6 +15,7 @@ class DirectoryController {
 			const query = Directory.find();
 
 			query.populate({ path: 'tags', select: 'title -_id' });
+			query.populate({ path: 'author', select: 'username -_id'});
 
 			if(request.query.tag) {
 				const tag = request.query.tag;
@@ -22,7 +24,7 @@ class DirectoryController {
 					query.find({tags: {'$regex': tag, '$options': 'i'}});
 				} else {
 					//Tag não existe
-					throw new Error("A tag ("+tag+") não existe como uma tag de Diretórios");
+					throw new Error("A etiqueta ("+tag+") no existe como una etiqueta de directorio");
 				}
 			}
 
@@ -32,11 +34,11 @@ class DirectoryController {
 				const page = parseInt(request.query.page);
 				//if page value is not a integer
 				if(!Number.isInteger(page)) {
-					throw new Error("Página deve ser um número");
+					throw new Error("La página debe ser un número");
 				}
 				//if page value is less than 1
 				if(page < 1) {
-					throw new Error("Página deve ser um número maior que 0");
+					throw new Error("La página debe ser un número mayor que 0");
 				}
 
 				const results = 30;
@@ -75,7 +77,7 @@ class DirectoryController {
 	  					query.sort({views: 'desc'});
 						break;
 					default:
-						throw new Error(request.query.views+" não é uma data válida");
+						throw new Error(request.query.views+" no es una fecha valida");
 				}
 			} else {
 				query.sort({createdAt: 'desc'});
@@ -86,11 +88,11 @@ class DirectoryController {
 
 			if (directories.length === 0) {
 				if(request.query.page) {
-					throw new Error("Nestá página não possui diretórios");
+					throw new Error("Esta página no tiene directorios");
 				} else if(request.query.views) {
-					throw new Error("Não há Diretórios Cadastrados dentro do espaço de tempo: "+request.query.views);
+					throw new Error("No hay directorios registrados dentro del período de tiempo: "+request.query.views);
 				} else {
-					throw new Error("Não há Diretórios Cadastrados no Banco de Dados!");
+					throw new Error("¡No hay directorios registrados en la base de datos!");
 				}
 		    }
 
@@ -99,7 +101,18 @@ class DirectoryController {
 		    	for(const tag of directory.tags) {
 		    		tags.push(tag.title);
 		    	}
-		    	directory.tags = tags; //Instead of sending a array of objects, send a array of strings
+
+		    	if(directory.tags) {
+		    		directory.tags = tags; //Instead of sending a array of objects, send a array of strings
+		    	} else {
+		    		directory.tags = ['Etiquetas excluidas'];
+		    	}
+
+		    	if(directory.author) {
+		    		directory.author = directory.author.username; //Instead of sending a object of user, send the username
+		    	} else {
+		    		directory.author = 'Autor eliminado';
+		    	}
 		    }
 
 
@@ -139,13 +152,13 @@ class DirectoryController {
 
 	async create(request, response) {
 		try {
-			const { title, subtitle, content } = request.body;
+			const { title, subtitle, content, link } = request.body;
 			let {tags} = request.body;
 			
-			const owner = request.user.id;
+			const loggedUser = request.user.id;
 
 			if(typeof(tags) === "undefined") {
-				throw new Error("É necessário colocar pelo menos 1 tag");
+				throw new Error("Se requieren al menos 1 etiquetas");
 			}
 			if(typeof(tags) === "string") {
 				tags = new Array(tags);
@@ -165,15 +178,15 @@ class DirectoryController {
 			}
 
 			if(tagsNotFound.length) {
-				throw new Error("Tags: "+tagsNotFound.toString()+" não existem");
+				throw new Error("Etiquetas: "+tagsNotFound.toString()+" no existen");
 			}
 
 			validation.validateImage(request.files);
 
 		    const image = request.files.image;
 
-			if(!owner) {
-				throw new Error("É necessário estar logado para saber a quem pertence este Directory");
+			if(!loggedUser) {
+				throw new Error("Debe iniciar sesión para saber quién publicó este directorio");
 			}
 
 		    //__basedir is a Global Variable that we assigned at our server.js that return the root path of the project
@@ -181,18 +194,19 @@ class DirectoryController {
 		    const imagePath = `${__basedir}/public/images/directories/${imageName}`;
 
 			const directory = await Directory.create({
-				owner,
+				author: loggedUser,
 				title,
 				subtitle,
 				content,
 				imagePath: '/images/directories/'+imageName,
+				link,
 				tags: idTags
 			});
 
 		    //move the image to the path 'imagePath'
 		    image.mv(imagePath, function (err) {
 		        if (err) {
-		            throw new Error("Ocorreu um erro ao cadastrar a imagem");
+		            throw new Error("Hubo un error al registrar la imagen.");
 		        }
 		    });
 
@@ -208,10 +222,12 @@ class DirectoryController {
 
 	async find(request, response) {
 		try {
-			const directory = await Directory.findById(request.params.id).populate({ path: 'tags', select: 'title -_id' });
+			const directory = await Directory.findById(request.params.id)
+				.populate({ path: 'tags', select: 'title -_id' })
+				.populate({ path: 'author', select: 'username -_id' });
 
 			if (!directory) {
-				throw new Error("Diretório não encontrado");
+				throw new Error("Directorio no encontrado");
 			}
 
 			//Se não estiver logado
@@ -226,10 +242,24 @@ class DirectoryController {
 	    	for(const tag of directoryJSON.tags) {
 	    		tags.push(tag.title);
 	    	}
-	    	directoryJSON.tags = tags; //Instead of sending a array of objects, send a array of strings
+
+	    	if(directoryJSON.tags) {
+	    		directoryJSON.tags = tags; //Instead of sending a array of objects, send a array of strings
+	    	} else {
+	    		directoryJSON.tags = ['Etiquetas excluidas'];
+	    	}
+
+	    	if(directoryJSON.author) {
+	    		directoryJSON.author = directoryJSON.author.username; //Instead of sending a object of user, send the username
+	    	} else {
+	    		directoryJSON.author = 'Autor eliminado';
+	    	}
+
+	    	const featured = await Featured.findOne({post: directoryJSON._id});
 
 			return response.json({
 				success: true,
+				featured,
 				directory: directoryJSON
 			});
 		} catch (error) {
@@ -240,17 +270,17 @@ class DirectoryController {
 	async update(request, response) {
 		try {
 
-			const { title, subtitle, content } = request.body;
+			const { title, subtitle, content, link } = request.body;
 			let {tags} = request.body;
 
 			const directory = await Directory.findById(request.params.id);
 
 			if(!directory) {
-				throw new Error("Diretório não encontrado");
+				throw new Error("Directorio no encontrado");
 			}
 
 			if(typeof(tags) === "undefined") {
-				throw new Error("É necessário colocar pelo menos 1 tag");
+				throw new Error("Se requieren al menos 1 etiquetas");
 			}
 			if(typeof(tags) === "string") {
 				tags = new Array(tags);
@@ -270,7 +300,7 @@ class DirectoryController {
 			}
 
 			if(tagsNotFound.length) {
-				throw new Error("Tags: "+tagsNotFound.toString()+" não existem");
+				throw new Error("Etiquetas: "+tagsNotFound.toString()+" no existen");
 			}
 
 			if (request.files) {
@@ -291,7 +321,7 @@ class DirectoryController {
 			    //Adicionando a imagem nova
 			    image.mv(imagePath, function (err) {
 			        if (err) {
-			            throw new Error("Ocorreu um erro ao cadastrar a imagem");
+			            throw new Error("Hubo un error al registrar la imagen.");
 			        }
 			    });
 			}
@@ -299,6 +329,7 @@ class DirectoryController {
 			directory.title = title;
 			directory.subtitle = subtitle;
 			directory.content = content;
+			directory.link = link;
 			directory.tags = idTags;
 
 			await directory.save();
@@ -317,14 +348,14 @@ class DirectoryController {
 			const directory = await Directory.findById(request.params.id);
 			
 			if (!directory) {
-		        throw new Error("Diretório Não Existe!");
+		        throw new Error("¡El directorio no existe!");
 		    }
 
 		    await directory.remove();
 
 			return response.json({
 				success: true,
-				message: 'Diretório deletado'
+				message: 'Directorio eliminado'
 			});
 		} catch (error) {
 			return response.status(400).json(handleErrors(error));
