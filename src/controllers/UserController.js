@@ -1,6 +1,7 @@
 let User = require('../schemas/user.schema.js');
 
 const handleErrors = require('../helpers/error-handler');
+const Roles = require('../helpers/roles');
 
 class UserController {
 	async getAllUsers(request, response) {
@@ -28,7 +29,30 @@ class UserController {
 				email,
 				phone,
 				password,
-				role: "Admin"
+				role: Roles.User
+			});
+
+			return response
+				.status(200)
+				.json({
+					success: true
+				});
+			
+		} catch (error) {
+			return response.status(400).json(handleErrors(error));
+		}
+	}
+
+	async createAdmin(request, response) {
+		try {
+			const { username, email, phone, password } = request.body;
+
+			const user = await User.create({
+				username,
+				email,
+				phone,
+				password,
+				role: Roles.Admin
 			});
 
 			return response

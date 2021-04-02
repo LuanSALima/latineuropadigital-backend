@@ -35,29 +35,6 @@ class AuthController {
 	    	return response.status(400).json(handleErrors(error));
 	    }
 	}
-
-	async signUp(request, response) {
-		try {
-			const { username, email, phone, password, professional } = request.body;
-
-			const user = await User.create({
-				username,
-				email,
-				phone,
-				password,
-				role: Roles.User
-			});
-
-			return response
-				.status(200)
-				.json({
-					success: true
-				});
-			
-		} catch (error) {
-			return response.status(400).json(handleErrors(error));
-		}
-	}
 }
 
 module.exports = new AuthController();
