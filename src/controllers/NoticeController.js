@@ -14,6 +14,7 @@ class NoticeController {
 			const query = Notice.find();
 
 			query.populate({ path: 'tags', select: 'title -_id' });
+			query.populate({ path: 'author', select: 'username -_id'});
 
 			if(request.query.tag) {
 				const tag = request.query.tag;
@@ -100,6 +101,7 @@ class NoticeController {
 		    		tags.push(tag.title);
 		    	}
 		    	notice.tags = tags; //Instead of sending a array of objects, send a array of strings
+		    	notice.author = notice.author.username; //Instead of sending a object of user, send the username
 		    }
 
 		    const totalNotices = await Notice.countDocuments({});
@@ -141,7 +143,7 @@ class NoticeController {
 			const { title, subtitle, content } = request.body;
 			let {tags} = request.body;
 			
-			const owner = request.user.id;
+			const userLogged = request.user.id;
 
 			if(typeof(tags) === "undefined") {
 				throw new Error("É necessário colocar pelo menos 1 tag");
@@ -171,8 +173,8 @@ class NoticeController {
 
 		    const image = request.files.image;
 
-			if(!owner) {
-				throw new Error("É necessário estar logado para saber a quem pertence este Notice");
+			if(!userLogged) {
+				throw new Error("É necessário estar logado para saber a quem é o autor deste Notice");
 			}
 
 		    //__basedir is a Global Variable that we assigned at our server.js that return the root path of the project
@@ -180,7 +182,7 @@ class NoticeController {
 		    const imagePath = `${__basedir}/public/images/notices/${imageName}`;
 
 			const notice = await Notice.create({
-				owner,
+				author: userLogged,
 				title,
 				subtitle,
 				content,
@@ -207,7 +209,9 @@ class NoticeController {
 
 	async find(request, response) {
 		try {
-			const notice = await Notice.findById(request.params.id).populate({ path: 'tags', select: 'title -_id' });
+			const notice = await Notice.findById(request.params.id)
+				.populate({ path: 'tags', select: 'title -_id' })
+				.populate({ path: 'author', select: 'username -_id' });
 
 			if (!notice) {
 				throw new Error("Notícia não encontrada");
@@ -226,6 +230,7 @@ class NoticeController {
 	    		tags.push(tag.title);
 	    	}
 	    	noticeJSON.tags = tags; //Instead of sending a array of objects, send a array of strings
+	    	noticeJSON.author = noticeJSON.author.username; //Instead of sending a object, send a string
 
 			return response.json({
 				success: true,

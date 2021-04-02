@@ -14,6 +14,7 @@ class EventController {
 			const query = Event.find();
 
 			query.populate({ path: 'tags', select: 'title -_id' });
+			query.populate({ path: 'author', select: 'username -_id'});
 
 			if(request.query.tag) {
 				const tag = request.query.tag;
@@ -100,6 +101,7 @@ class EventController {
 		    		tags.push(tag.title);
 		    	}
 		    	event.tags = tags; //Instead of sending a array of objects, send a array of strings
+		    	event.author = event.author.username; //Instead of sending a object of user, send the username
 		    }
 
 		    const totalEvents = await Event.countDocuments({});
@@ -141,7 +143,7 @@ class EventController {
 			const { title, subtitle, content } = request.body;
 			let {tags} = request.body;
 			
-			const owner = request.user.id;
+			const userLogged = request.user.id;
 
 			if(typeof(tags) === "undefined") {
 				throw new Error("É necessário colocar pelo menos 1 tag");
@@ -171,7 +173,7 @@ class EventController {
 
 		    const image = request.files.image;
 
-			if(!owner) {
+			if(!userLogged) {
 				throw new Error("É necessário estar logado para saber a quem pertence este Evento");
 			}
 
@@ -180,7 +182,7 @@ class EventController {
 		    const imagePath = `${__basedir}/public/images/events/${imageName}`;
 
 			const event = await Event.create({
-				owner,
+				author: userLogged,
 				title,
 				subtitle,
 				content,
@@ -207,7 +209,9 @@ class EventController {
 
 	async find(request, response) {
 		try {
-			const event = await Event.findById(request.params.id).populate({ path: 'tags', select: 'title -_id' });
+			const event = await Event.findById(request.params.id)
+				.populate({ path: 'tags', select: 'title -_id' })
+				.populate({ path: 'author', select: 'username -_id' });
 
 			if (!event) {
 				throw new Error("Evento não encontrada");
@@ -226,6 +230,7 @@ class EventController {
 	    		tags.push(tag.title);
 	    	}
 	    	eventJSON.tags = tags; //Instead of sending a array of objects, send a array of strings
+	    	eventJSON.author = eventJSON.author.username; //Instead of sending a object, send a string
 
 			return response.json({
 				success: true,

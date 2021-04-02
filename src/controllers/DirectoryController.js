@@ -14,6 +14,7 @@ class DirectoryController {
 			const query = Directory.find();
 
 			query.populate({ path: 'tags', select: 'title -_id' });
+			query.populate({ path: 'author', select: 'username -_id'});
 
 			if(request.query.tag) {
 				const tag = request.query.tag;
@@ -100,6 +101,7 @@ class DirectoryController {
 		    		tags.push(tag.title);
 		    	}
 		    	directory.tags = tags; //Instead of sending a array of objects, send a array of strings
+		    	directory.author = directory.author.username; //Instead of sending a object of user, send the username
 		    }
 
 
@@ -142,7 +144,7 @@ class DirectoryController {
 			const { title, subtitle, content } = request.body;
 			let {tags} = request.body;
 			
-			const owner = request.user.id;
+			const loggedUser = request.user.id;
 
 			if(typeof(tags) === "undefined") {
 				throw new Error("É necessário colocar pelo menos 1 tag");
@@ -172,7 +174,7 @@ class DirectoryController {
 
 		    const image = request.files.image;
 
-			if(!owner) {
+			if(!loggedUser) {
 				throw new Error("É necessário estar logado para saber a quem pertence este Directory");
 			}
 
@@ -181,7 +183,7 @@ class DirectoryController {
 		    const imagePath = `${__basedir}/public/images/directories/${imageName}`;
 
 			const directory = await Directory.create({
-				owner,
+				author: loggedUser,
 				title,
 				subtitle,
 				content,
@@ -208,7 +210,9 @@ class DirectoryController {
 
 	async find(request, response) {
 		try {
-			const directory = await Directory.findById(request.params.id).populate({ path: 'tags', select: 'title -_id' });
+			const directory = await Directory.findById(request.params.id)
+				.populate({ path: 'tags', select: 'title -_id' })
+				.populate({ path: 'author', select: 'username -_id' });
 
 			if (!directory) {
 				throw new Error("Diretório não encontrado");
@@ -227,6 +231,7 @@ class DirectoryController {
 	    		tags.push(tag.title);
 	    	}
 	    	directoryJSON.tags = tags; //Instead of sending a array of objects, send a array of strings
+	    	directoryJSON.author = directoryJSON.author.username; //Instead of sending a object, send a string
 
 			return response.json({
 				success: true,

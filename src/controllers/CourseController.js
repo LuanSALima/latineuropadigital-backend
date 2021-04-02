@@ -14,6 +14,7 @@ class CourseController {
 			const query = Course.find();
 
 			query.populate({ path: 'tags', select: 'title -_id' });
+			query.populate({ path: 'author', select: 'username -_id'});
 
 			if(request.query.tag) {
 				const tag = request.query.tag;
@@ -100,6 +101,7 @@ class CourseController {
 		    		tags.push(tag.title);
 		    	}
 		    	course.tags = tags; //Instead of sending a array of objects, send a array of strings
+		    	course.author = course.author.username; //Instead of sending a object of user, send the username
 		    }
 
 		    const totalCourses = await Course.countDocuments({});
@@ -141,7 +143,7 @@ class CourseController {
 			const { title, subtitle, content } = request.body;
 			let {tags} = request.body;
 			
-			const owner = request.user.id;
+			const loggedUser = request.user.id;
 
 			if(typeof(tags) === "undefined") {
 				throw new Error("É necessário colocar pelo menos 1 tag");
@@ -171,7 +173,7 @@ class CourseController {
 
 		    const image = request.files.image;
 
-			if(!owner) {
+			if(!loggedUser) {
 				throw new Error("É necessário estar logado para saber a quem pertence este Curso");
 			}
 
@@ -180,7 +182,7 @@ class CourseController {
 		    const imagePath = `${__basedir}/public/images/courses/${imageName}`;
 
 			const course = await Course.create({
-				owner,
+				author: loggedUser,
 				title,
 				subtitle,
 				content,
@@ -207,7 +209,9 @@ class CourseController {
 
 	async find(request, response) {
 		try {
-			const course = await Course.findById(request.params.id).populate({ path: 'tags', select: 'title -_id' });
+			const course = await Course.findById(request.params.id)
+				.populate({ path: 'tags', select: 'title -_id' })
+				.populate({ path: 'author', select: 'username -_id' });
 
 			if (!course) {
 				throw new Error("Curso não encontrada");
@@ -226,6 +230,7 @@ class CourseController {
 	    		tags.push(tag.title);
 	    	}
 	    	courseJSON.tags = tags; //Instead of sending a array of objects, send a array of strings
+	    	courseJSON.author = courseJSON.author.username; //Instead of sending a object, send a string
 
 			return response.json({
 				success: true,

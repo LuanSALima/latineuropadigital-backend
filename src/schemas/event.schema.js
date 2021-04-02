@@ -6,8 +6,9 @@ const fileSystem = require('fs');
 const Schema = mongoose.Schema;
 
 const eventSchema = new Schema({
-	owner: {
-		type: String,
+	author: {
+		type: Schema.Types.ObjectId,
+		ref: "User",
 		required: [true, 'É necessário informar quem publicou este Evento'],
 	},
 	title: {
