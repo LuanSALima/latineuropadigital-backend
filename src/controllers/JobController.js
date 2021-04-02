@@ -106,7 +106,7 @@ class JobController {
 			}
 
 			if(jobTypesNotFound.length) {
-				throw new Error("Tipos de trabajo: "+tipo de trabajo no encontrado.ToString()+" no existe");
+				throw new Error("Tipos de trabajo: "+jobTypesNotFound.ToString()+" no existe");
 			}
 
 			const job = await Job.create({
@@ -185,7 +185,7 @@ class JobController {
 			}
 
 			if(jobTypesNotFound.length) {
-				throw new Error("Tipos de trabajo: "+tipo de trabajo no encontrado.ToString()+" no existe");
+				throw new Error("Tipos de trabajo: "+jobTypesNotFound.ToString()+" no existe");
 			}
 
 			const validStatus = ["pendent", "accepted"];

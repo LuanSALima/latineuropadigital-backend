@@ -11,7 +11,11 @@ const handleError = (error) => {
     message = undefined;
 
     Object.keys(error.errors).forEach((key) => {
-      errors[key] = error.errors[key].message;
+      if(error.errors[key].kind === "ObjectId") {
+        errors[key] = error.errors[key].path+" no encontrado";
+      } else {
+        errors[key] = error.errors[key].message;
+      }
     });
   }
 
