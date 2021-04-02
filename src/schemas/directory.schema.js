@@ -15,19 +15,24 @@ const directorySchema = new Schema({
 		required: [true, 'É necessário informar o título do Diretório'],
 		trim: true,
 	},
-	description: {
+	subtitle: {
 		type: String,
-		required: [true, 'É necessário informar a descrição do Diretório'],
+		required: [true, 'É necessário informar o subtítulo do Diretório'],
+		trim: true
+	},
+	content: {
+		type: String,
+		required: [true, 'É necessário informar o conteudo do Diretório'],
 		trim: true
 	},
 	imagePath: {
 		type: String,
 		required: [true, 'É necessário cadastrar uma imagem do Diretório']
 	},
-	tags: {
-		type: [String],
-		required: [true, 'É necessário informar as tags do Diretório']
-	},
+	tags: [{
+		type: Schema.Types.ObjectId,
+		ref: "Tag"
+	}],
 	views: {
 		type: Number,
 		default: 0

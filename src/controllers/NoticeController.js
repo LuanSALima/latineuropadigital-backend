@@ -11,7 +11,39 @@ const fileSystem = require('fs');
 class NoticeController {
 	async list(request, response) {
 		try {
-			let notices = undefined;
+			const query = Notice.find();
+
+			query.populate({ path: 'tags', select: 'title -_id' });
+
+			if(request.query.tag) {
+				const tag = request.query.tag;
+
+				if(await Tags.exists({title: { '$regex' : tag, '$options' : 'i' }, types: 'Notice'})) {
+					query.find({tags: {'$regex': tag, '$options': 'i'}});
+				} else {
+					//Tag não existe
+					throw new Error("A tag ("+tag+") não existe como uma tag de Notícias");
+				}
+			}
+
+			//If have a query for page or results
+			if(request.query.page) {
+				//Assign page value at a constant and parse for int
+				const page = parseInt(request.query.page);
+				//if page value is not a integer
+				if(!Number.isInteger(page)) {
+					throw new Error("Página deve ser um número");
+				}
+				//if page value is less than 1
+				if(page < 1) {
+					throw new Error("Página deve ser um número maior que 0");
+				}
+
+				const results = 30;
+				
+				//Assign to query a limit of results and skip by page and results
+				query.limit(results).skip((page-1)*results);
+			}
 
 			if(request.query.views) {
 				switch(request.query.views) {
@@ -20,24 +52,14 @@ class NoticeController {
 						var yesterday = new Date();
 	  					yesterday.setDate(today.getDate()-1);
 
-	  					notices = await Notice.find({
-	  						"createdAt": {
-	  							"$gte": yesterday,
-	  							"$lt": today
-	  						}
-	  					}).sort({views: 'desc'});
+	  					query.where({createdAt: {"$gte": yesterday, "$lt": today}}).sort({views: 'desc'});
 						break;
 					case 'weekly' :
 						var today = new Date();
 						var lastWeek = new Date();
 	  					lastWeek.setDate(today.getDate()-7);
 
-	  					notices = await Notice.find({
-	  						"createdAt": {
-	  							"$gte": lastWeek,
-	  							"$lt": today
-	  						}
-	  					}).sort({views: 'desc'});
+	  					query.where({createdAt: {"$gte": lastWeek, "$lt": today}}).sort({views: 'desc'});
 						break;
 					case 'monthly' :
 						var today = new Date();
@@ -47,37 +69,44 @@ class NoticeController {
 	  					lastMonth.setHours(0);
 	  					lastMonth.setMinutes(0);
 
-	  					notices = await Notice.find({
-	  						"createdAt": {
-	  							"$gte": lastMonth,
-	  							"$lt": today
-	  						}
-	  					}).sort({views: 'desc'});
+	  					query.where({createdAt: {"$gte": lastMonth, "$lt": today}}).sort({views: 'desc'});
 						break;
 					case 'allTime' :
-	  					notices = await Notice.find({}).sort({views: 'desc'});
+	  					query.sort({views: 'desc'});
 						break;
 					default:
 						throw new Error(request.query.views+" não é uma data válida");
 				}
 			} else {
-				notices = await Notice.find().sort({createdAt: 'desc'});
+				query.sort({createdAt: 'desc'});
 			}
 
-			if(!notices) {
-				throw new Error("Não foi possível Buscar pelas Notícias");
-			}
+			query.lean(); //Transform the Mongoose Documents into a plain javascript object. That way we can set the property the way we want
+			const notices = await query.exec();
 
 			if (notices.length === 0) {
-				if(request.query.views) {
+				if(request.query.page) {
+					throw new Error("Nestá página não possui notícias");
+				} else if(request.query.views) {
 					throw new Error("Não há Notícias Cadastradas dentro do espaço de tempo: "+request.query.views);
 				} else {
 					throw new Error("Não há Notícias Cadastradas no Banco de Dados!");
 				}
 		    }
 
+		    for(const notice of notices) {
+		    	const tags = [];
+		    	for(const tag of notice.tags) {
+		    		tags.push(tag.title);
+		    	}
+		    	notice.tags = tags; //Instead of sending a array of objects, send a array of strings
+		    }
+
+		    const totalNotices = await Notice.countDocuments({});
+
 			return response.status(200).json({
 				success: true,
+				totalNotices,
 				notices
 			});
 		} catch (error) {
@@ -92,7 +121,7 @@ class NoticeController {
 			const usedTags = new Array();
 			
 			for(const tag of allTags) {
-				if(await Notice.exists({tags: { '$regex' : tag.title, '$options' : 'i' }})) {
+				if(await Notice.exists({tags: tag._id})) {
 					usedTags.push(tag);
 				}
 			}
@@ -109,20 +138,12 @@ class NoticeController {
 
 	async create(request, response) {
 		try {
-			const { title, description } = request.body;
+			const { title, subtitle, content } = request.body;
 			let {tags} = request.body;
 			
 			const owner = request.user.id;
 
-			validation.validateImage(request.files);
-
-		    const image = request.files.image;
-
-			if(!owner) {
-				throw new Error("É necessário estar logado para saber a quem pertence este Notice");
-			}
-
-		    if(typeof(tags) === "undefined") {
+			if(typeof(tags) === "undefined") {
 				throw new Error("É necessário colocar pelo menos 1 tag");
 			}
 			if(typeof(tags) === "string") {
@@ -130,10 +151,12 @@ class NoticeController {
 			}
 
 			let tagsNotFound = [];
+			let idTags = [];
 
 			for (const tag of tags) {
-				if(await Tags.exists({title: tag})) {
-					//Tag Existe
+				const tagBCD = await Tags.findOne({title: tag});
+				if(tagBCD) {
+					idTags.push(tagBCD._id);
 				} else {
 					//Tag Não Existe
 					tagsNotFound.push(tag);
@@ -144,6 +167,14 @@ class NoticeController {
 				throw new Error("Tags: "+tagsNotFound.toString()+" não existem");
 			}
 
+			validation.validateImage(request.files);
+
+		    const image = request.files.image;
+
+			if(!owner) {
+				throw new Error("É necessário estar logado para saber a quem pertence este Notice");
+			}
+
 		    //__basedir is a Global Variable that we assigned at our server.js that return the root path of the project
 		    const imageName = `${Date.now()}-${image.name}`;
 		    const imagePath = `${__basedir}/public/images/notices/${imageName}`;
@@ -151,9 +182,10 @@ class NoticeController {
 			const notice = await Notice.create({
 				owner,
 				title,
+				subtitle,
+				content,
 				imagePath: '/images/notices/'+imageName,
-				description,
-				tags
+				tags: idTags
 			});
 
 		    //move the image to the path 'imagePath'
@@ -175,7 +207,7 @@ class NoticeController {
 
 	async find(request, response) {
 		try {
-			const notice = await Notice.findById(request.params.id);
+			const notice = await Notice.findById(request.params.id).populate({ path: 'tags', select: 'title -_id' });
 
 			if (!notice) {
 				throw new Error("Notícia não encontrada");
@@ -184,12 +216,20 @@ class NoticeController {
 			//Se não estiver logado
 			if(!jwt.checkToken(request)) {
 				notice.views = notice.views + 1;
-				notice.save();
+				notice.save({ validateBeforeSave: false });
 			}
+
+			const noticeJSON = notice.toJSON();
+
+	    	const tags = [];
+	    	for(const tag of noticeJSON.tags) {
+	    		tags.push(tag.title);
+	    	}
+	    	noticeJSON.tags = tags; //Instead of sending a array of objects, send a array of strings
 
 			return response.json({
 				success: true,
-				notice
+				notice: noticeJSON
 			});
 		} catch (error) {
 			return response.status(400).json(handleErrors(error));
@@ -199,7 +239,7 @@ class NoticeController {
 	async update(request, response) {
 		try {
 
-			const { title, description } = request.body;
+			const { title, subtitle, content } = request.body;
 			let {tags} = request.body;
 
 			const notice = await Notice.findById(request.params.id);
@@ -216,10 +256,12 @@ class NoticeController {
 			}
 
 			let tagsNotFound = [];
+			let idTags = [];
 
 			for (const tag of tags) {
-				if(await Tags.exists({title: tag})) {
-					//Tag Existe
+				const tagBCD = await Tags.findOne({title: tag});
+				if(tagBCD) {
+					idTags.push(tagBCD._id);
 				} else {
 					//Tag Não Existe
 					tagsNotFound.push(tag);
@@ -254,8 +296,9 @@ class NoticeController {
 			}
 
 			notice.title = title;
-			notice.description = description;
-			notice.tags = tags;
+			notice.subtitle = subtitle;
+			notice.content = content;
+			notice.tags = idTags;
 
 			await notice.save();
 

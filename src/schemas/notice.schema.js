@@ -15,19 +15,24 @@ const noticeSchema = new Schema({
 		required: [true, 'É necessário informar o título da Notícia'],
 		trim: true,
 	},
-	description: {
+	subtitle: {
 		type: String,
-		required: [true, 'É necessário informar a descrição da Notícia'],
+		required: [true, 'É necessário informar o subtítulo da Notícia'],
+		trim: true
+	},
+	content: {
+		type: String,
+		required: [true, 'É necessário informar o conteudo da Notícia'],
 		trim: true
 	},
 	imagePath: {
 		type: String,
 		required: [true, 'É necessário cadastrar uma imagem da Notícia']
 	},
-	tags: {
-		type: [String],
-		required: [true, 'É necessário informar as tags da Notícia']
-	},
+	tags: [{
+		type: Schema.Types.ObjectId,
+		ref: "Tag"
+	}],
 	views: {
 		type: Number,
 		default: 0

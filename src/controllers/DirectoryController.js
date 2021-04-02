@@ -11,7 +11,39 @@ const fileSystem = require('fs');
 class DirectoryController {
 	async list(request, response) {
 		try {
-			let directories = undefined;
+			const query = Directory.find();
+
+			query.populate({ path: 'tags', select: 'title -_id' });
+
+			if(request.query.tag) {
+				const tag = request.query.tag;
+
+				if(await Tags.exists({title: { '$regex' : tag, '$options' : 'i' }, types: 'Directory'})) {
+					query.find({tags: {'$regex': tag, '$options': 'i'}});
+				} else {
+					//Tag não existe
+					throw new Error("A tag ("+tag+") não existe como uma tag de Diretórios");
+				}
+			}
+
+			//If have a query for page or results
+			if(request.query.page) {
+				//Assign page value at a constant and parse for int
+				const page = parseInt(request.query.page);
+				//if page value is not a integer
+				if(!Number.isInteger(page)) {
+					throw new Error("Página deve ser um número");
+				}
+				//if page value is less than 1
+				if(page < 1) {
+					throw new Error("Página deve ser um número maior que 0");
+				}
+
+				const results = 30;
+
+				//Assign to query a limit of results and skip by page and results
+				query.limit(results).skip((page-1)*results);
+			}
 
 			if(request.query.views) {
 				switch(request.query.views) {
@@ -20,24 +52,14 @@ class DirectoryController {
 						var yesterday = new Date();
 	  					yesterday.setDate(today.getDate()-1);
 
-	  					directories = await Directory.find({
-	  						"createdAt": {
-	  							"$gte": yesterday,
-	  							"$lt": today
-	  						}
-	  					}).sort({views: 'desc'});
+	  					query.where({createdAt: {"$gte": yesterday, "$lt": today}}).sort({views: 'desc'});
 						break;
 					case 'weekly' :
 						var today = new Date();
 						var lastWeek = new Date();
 	  					lastWeek.setDate(today.getDate()-7);
 
-	  					directories = await Directory.find({
-	  						"createdAt": {
-	  							"$gte": lastWeek,
-	  							"$lt": today
-	  						}
-	  					}).sort({views: 'desc'});
+	  					query.where({createdAt: {"$gte": lastWeek, "$lt": today}}).sort({views: 'desc'});
 						break;
 					case 'monthly' :
 						var today = new Date();
@@ -47,37 +69,45 @@ class DirectoryController {
 	  					lastMonth.setHours(0);
 	  					lastMonth.setMinutes(0);
 
-	  					directories = await Directory.find({
-	  						"createdAt": {
-	  							"$gte": lastMonth,
-	  							"$lt": today
-	  						}
-	  					}).sort({views: 'desc'});
+	  					query.where({createdAt: {"$gte": lastMonth, "$lt": today}}).sort({views: 'desc'});
 						break;
 					case 'allTime' :
-	  					directories = await Directory.find({}).sort({views: 'desc'});
+	  					query.sort({views: 'desc'});
 						break;
 					default:
 						throw new Error(request.query.views+" não é uma data válida");
 				}
 			} else {
-				directories = await Directory.find().sort({createdAt: 'desc'});
+				query.sort({createdAt: 'desc'});
 			}
 
-			if(!directories) {
-				throw new Error("Não foi possível Buscar pelos Diretórios");
-			}
+			query.lean(); //Transform the Mongoose Documents into a plain javascript object. That way we can set the property the way we want
+			const directories = await query.exec();
 
 			if (directories.length === 0) {
-				if(request.query.views) {
+				if(request.query.page) {
+					throw new Error("Nestá página não possui diretórios");
+				} else if(request.query.views) {
 					throw new Error("Não há Diretórios Cadastrados dentro do espaço de tempo: "+request.query.views);
 				} else {
 					throw new Error("Não há Diretórios Cadastrados no Banco de Dados!");
 				}
 		    }
 
+		    for(const directory of directories) {
+		    	const tags = [];
+		    	for(const tag of directory.tags) {
+		    		tags.push(tag.title);
+		    	}
+		    	directory.tags = tags; //Instead of sending a array of objects, send a array of strings
+		    }
+
+
+		    const totalDirectories = await Directory.countDocuments({});
+
 			return response.status(200).json({
 				success: true,
+				totalDirectories,
 				directories
 			});
 		} catch (error) {
@@ -92,7 +122,7 @@ class DirectoryController {
 			const usedTags = new Array();
 			
 			for(const tag of allTags) {
-				if(await Directory.exists({tags: { '$regex' : tag.title, '$options' : 'i' }})) {
+				if(await Directory.exists({tags: tag._id})) {
 					usedTags.push(tag);
 				}
 			}
@@ -109,20 +139,12 @@ class DirectoryController {
 
 	async create(request, response) {
 		try {
-			const { title, description } = request.body;
+			const { title, subtitle, content } = request.body;
 			let {tags} = request.body;
 			
 			const owner = request.user.id;
 
-			validation.validateImage(request.files);
-
-		    const image = request.files.image;
-
-			if(!owner) {
-				throw new Error("É necessário estar logado para saber a quem pertence este Directory");
-			}
-
-		    if(typeof(tags) === "undefined") {
+			if(typeof(tags) === "undefined") {
 				throw new Error("É necessário colocar pelo menos 1 tag");
 			}
 			if(typeof(tags) === "string") {
@@ -130,10 +152,12 @@ class DirectoryController {
 			}
 
 			let tagsNotFound = [];
+			let idTags = [];
 
 			for (const tag of tags) {
-				if(await Tags.exists({title: tag})) {
-					//Tag Existe
+				const tagBCD = await Tags.findOne({title: tag});
+				if(tagBCD) {
+					idTags.push(tagBCD._id);
 				} else {
 					//Tag Não Existe
 					tagsNotFound.push(tag);
@@ -144,6 +168,14 @@ class DirectoryController {
 				throw new Error("Tags: "+tagsNotFound.toString()+" não existem");
 			}
 
+			validation.validateImage(request.files);
+
+		    const image = request.files.image;
+
+			if(!owner) {
+				throw new Error("É necessário estar logado para saber a quem pertence este Directory");
+			}
+
 		    //__basedir is a Global Variable that we assigned at our server.js that return the root path of the project
 		    const imageName = `${Date.now()}-${image.name}`;
 		    const imagePath = `${__basedir}/public/images/directories/${imageName}`;
@@ -151,9 +183,10 @@ class DirectoryController {
 			const directory = await Directory.create({
 				owner,
 				title,
+				subtitle,
+				content,
 				imagePath: '/images/directories/'+imageName,
-				description,
-				tags
+				tags: idTags
 			});
 
 		    //move the image to the path 'imagePath'
@@ -175,21 +208,29 @@ class DirectoryController {
 
 	async find(request, response) {
 		try {
-			const directory = await Directory.findById(request.params.id);
+			const directory = await Directory.findById(request.params.id).populate({ path: 'tags', select: 'title -_id' });
 
 			if (!directory) {
-				throw new Error("Diretório não encontrada");
+				throw new Error("Diretório não encontrado");
 			}
 
 			//Se não estiver logado
 			if(!jwt.checkToken(request)) {
 				directory.views = directory.views + 1;
-				directory.save();
+				directory.save({ validateBeforeSave: false });
 			}
+
+			const directoryJSON = directory.toJSON();
+
+	    	const tags = [];
+	    	for(const tag of directoryJSON.tags) {
+	    		tags.push(tag.title);
+	    	}
+	    	directoryJSON.tags = tags; //Instead of sending a array of objects, send a array of strings
 
 			return response.json({
 				success: true,
-				directory
+				directory: directoryJSON
 			});
 		} catch (error) {
 			return response.status(400).json(handleErrors(error));
@@ -199,13 +240,13 @@ class DirectoryController {
 	async update(request, response) {
 		try {
 
-			const { title, description } = request.body;
+			const { title, subtitle, content } = request.body;
 			let {tags} = request.body;
 
 			const directory = await Directory.findById(request.params.id);
 
 			if(!directory) {
-				throw new Error("Diretório não encontrada");
+				throw new Error("Diretório não encontrado");
 			}
 
 			if(typeof(tags) === "undefined") {
@@ -216,10 +257,12 @@ class DirectoryController {
 			}
 
 			let tagsNotFound = [];
+			let idTags = [];
 
 			for (const tag of tags) {
-				if(await Tags.exists({title: tag})) {
-					//Tag Existe
+				const tagBCD = await Tags.findOne({title: tag});
+				if(tagBCD) {
+					idTags.push(tagBCD._id);
 				} else {
 					//Tag Não Existe
 					tagsNotFound.push(tag);
@@ -254,8 +297,9 @@ class DirectoryController {
 			}
 
 			directory.title = title;
-			directory.description = description;
-			directory.tags = tags;
+			directory.subtitle = subtitle;
+			directory.content = content;
+			directory.tags = idTags;
 
 			await directory.save();
 

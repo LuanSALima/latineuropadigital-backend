@@ -15,19 +15,24 @@ const eventSchema = new Schema({
 		required: [true, 'É necessário informar o título do Evento'],
 		trim: true,
 	},
-	description: {
+	subtitle: {
 		type: String,
-		required: [true, 'É necessário informar a descrição do Evento'],
+		required: [true, 'É necessário informar o subtítulo do Evento'],
+		trim: true
+	},
+	content: {
+		type: String,
+		required: [true, 'É necessário informar o conteudo do Evento'],
 		trim: true
 	},
 	imagePath: {
 		type: String,
 		required: [true, 'É necessário cadastrar uma imagem do Evento']
 	},
-	tags: {
-		type: [String],
-		required: [true, 'É necessário informar as tags do Evento']
-	},
+	tags: [{
+		type: Schema.Types.ObjectId,
+		ref: "Tag"
+	}],
 	views: {
 		type: Number,
 		default: 0
