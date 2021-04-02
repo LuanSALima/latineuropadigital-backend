@@ -1,5 +1,6 @@
 let Notice = require('../schemas/notice.schema');
 let Tags = require('../schemas/tags.schema');
+let Featured = require('../schemas/featured.schema');
 
 const handleErrors = require('../helpers/error-handler');
 const validation = require('../helpers/validation');
@@ -151,7 +152,7 @@ class NoticeController {
 
 	async create(request, response) {
 		try {
-			const { title, subtitle, content } = request.body;
+			const { title, subtitle, content, link } = request.body;
 			let {tags} = request.body;
 			
 			const userLogged = request.user.id;
@@ -198,6 +199,7 @@ class NoticeController {
 				subtitle,
 				content,
 				imagePath: '/images/notices/'+imageName,
+				link,
 				tags: idTags
 			});
 
@@ -253,9 +255,11 @@ class NoticeController {
 	    		noticeJSON.author = 'Autor eliminado';
 	    	}
 	    	
+	    	const featured = await Featured.findOne({post: noticeJSON._id});
 
 			return response.json({
 				success: true,
+				featured,
 				notice: noticeJSON
 			});
 		} catch (error) {
@@ -266,7 +270,7 @@ class NoticeController {
 	async update(request, response) {
 		try {
 
-			const { title, subtitle, content } = request.body;
+			const { title, subtitle, content, link } = request.body;
 			let {tags} = request.body;
 
 			const notice = await Notice.findById(request.params.id);
@@ -325,6 +329,7 @@ class NoticeController {
 			notice.title = title;
 			notice.subtitle = subtitle;
 			notice.content = content;
+			notice.link = link;
 			notice.tags = idTags;
 
 			await notice.save();

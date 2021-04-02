@@ -30,6 +30,10 @@ const eventSchema = new Schema({
 		type: String,
 		required: [true, 'Es necesario informar una imagen de este evento']
 	},
+	link: {
+		type: String,
+		required: [true, 'Es necesario informar o link']
+	},
 	tags: [{
 		type: Schema.Types.ObjectId,
 		ref: "Tag"

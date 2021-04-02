@@ -1,5 +1,6 @@
 let Event = require('../schemas/event.schema');
 let Tags = require('../schemas/tags.schema');
+let Featured = require('../schemas/featured.schema');
 
 const handleErrors = require('../helpers/error-handler');
 const validation = require('../helpers/validation');
@@ -150,7 +151,7 @@ class EventController {
 
 	async create(request, response) {
 		try {
-			const { title, subtitle, content } = request.body;
+			const { title, subtitle, content, link } = request.body;
 			let {tags} = request.body;
 			
 			const userLogged = request.user.id;
@@ -197,6 +198,7 @@ class EventController {
 				subtitle,
 				content,
 				imagePath: '/images/events/'+imageName,
+				link,
 				tags: idTags
 			});
 
@@ -252,8 +254,11 @@ class EventController {
 	    		eventJSON.author = 'Autor eliminado';
 	    	}
 
+	    	const featured = await Featured.findOne({post: eventJSON._id});
+
 			return response.json({
 				success: true,
+				featured,
 				event: eventJSON
 			});
 		} catch (error) {
@@ -264,7 +269,7 @@ class EventController {
 	async update(request, response) {
 		try {
 
-			const { title, subtitle, content } = request.body;
+			const { title, subtitle, content, link } = request.body;
 			let {tags} = request.body;
 
 			const event = await Event.findById(request.params.id);
@@ -323,6 +328,7 @@ class EventController {
 			event.title = title;
 			event.subtitle = subtitle;
 			event.content = content;
+			event.link = link;
 			event.tags = idTags;
 
 			await event.save();

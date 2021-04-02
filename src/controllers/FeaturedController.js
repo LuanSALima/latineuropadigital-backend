@@ -23,10 +23,12 @@ class FeaturedController {
 
 	async create(request, response) {
 		try {
-			const {position, post, postType} = request.body;
+			const {post, postType} = request.body;
+
+			const numFeatureds = await Featured.countDocuments({});
 
 			const featured = await Featured.create({
-				position,
+				position: numFeatureds+1,
 				post,
 				postType
 			});

@@ -1,5 +1,6 @@
 let Directory = require('../schemas/directory.schema');
 let Tags = require('../schemas/tags.schema');
+let Featured = require('../schemas/featured.schema');
 
 const handleErrors = require('../helpers/error-handler');
 const validation = require('../helpers/validation');
@@ -151,7 +152,7 @@ class DirectoryController {
 
 	async create(request, response) {
 		try {
-			const { title, subtitle, content } = request.body;
+			const { title, subtitle, content, link } = request.body;
 			let {tags} = request.body;
 			
 			const loggedUser = request.user.id;
@@ -198,6 +199,7 @@ class DirectoryController {
 				subtitle,
 				content,
 				imagePath: '/images/directories/'+imageName,
+				link,
 				tags: idTags
 			});
 
@@ -253,8 +255,11 @@ class DirectoryController {
 	    		directoryJSON.author = 'Autor eliminado';
 	    	}
 
+	    	const featured = await Featured.findOne({post: directoryJSON._id});
+
 			return response.json({
 				success: true,
+				featured,
 				directory: directoryJSON
 			});
 		} catch (error) {
@@ -265,7 +270,7 @@ class DirectoryController {
 	async update(request, response) {
 		try {
 
-			const { title, subtitle, content } = request.body;
+			const { title, subtitle, content, link } = request.body;
 			let {tags} = request.body;
 
 			const directory = await Directory.findById(request.params.id);
@@ -324,6 +329,7 @@ class DirectoryController {
 			directory.title = title;
 			directory.subtitle = subtitle;
 			directory.content = content;
+			directory.link = link;
 			directory.tags = idTags;
 
 			await directory.save();

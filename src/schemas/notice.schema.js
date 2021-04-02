@@ -30,6 +30,10 @@ const noticeSchema = new Schema({
 		type: String,
 		required: [true, 'Es necesario informar una imagen de la noticia']
 	},
+	link: {
+		type: String,
+		required: [true, 'Es necesario informar o link']
+	},
 	tags: [{
 		type: Schema.Types.ObjectId,
 		ref: "Tag"

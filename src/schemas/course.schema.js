@@ -30,6 +30,10 @@ const courseSchema = new Schema({
 		type: String,
 		required: [true, 'Es necesario informar una imagen de este curso']
 	},
+	link: {
+		type: String,
+		required: [true, 'Es necesario informar o link']
+	},
 	tags: [{
 		type: Schema.Types.ObjectId,
 		ref: "Tag"

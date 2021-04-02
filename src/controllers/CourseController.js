@@ -1,5 +1,6 @@
 let Course = require('../schemas/course.schema');
 let Tags = require('../schemas/tags.schema');
+let Featured = require('../schemas/featured.schema');
 
 const handleErrors = require('../helpers/error-handler');
 const validation = require('../helpers/validation');
@@ -150,7 +151,7 @@ class CourseController {
 
 	async create(request, response) {
 		try {
-			const { title, subtitle, content } = request.body;
+			const { title, subtitle, content, link } = request.body;
 			let {tags} = request.body;
 			
 			const loggedUser = request.user.id;
@@ -197,6 +198,7 @@ class CourseController {
 				subtitle,
 				content,
 				imagePath: '/images/courses/'+imageName,
+				link,
 				tags: idTags
 			});
 
@@ -252,8 +254,11 @@ class CourseController {
 	    		courseJSON.author = 'Autor eliminado';
 	    	}
 
+	    	const featured = await Featured.findOne({post: courseJSON._id});
+
 			return response.json({
 				success: true,
+				featured,
 				course: courseJSON
 			});
 		} catch (error) {
@@ -264,7 +269,7 @@ class CourseController {
 	async update(request, response) {
 		try {
 
-			const { title, subtitle, content } = request.body;
+			const { title, subtitle, content, link } = request.body;
 			let {tags} = request.body;
 
 			const course = await Course.findById(request.params.id);
@@ -323,6 +328,7 @@ class CourseController {
 			course.title = title;
 			course.subtitle = subtitle;
 			course.content = content;
+			course.link = link;
 			course.tags = idTags;
 
 			await course.save();

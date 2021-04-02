@@ -43,7 +43,7 @@ const userSchema = new Schema({
 	          //Password possui pelo menos 1 numero, 1 letra minúscula, 1 letra maiúscula, 1 caracter especial e no minimo de 8 caracteres 
 	          return /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9])(?!.*\s).{8,}$/.test(value);
 	        },
-	        message: "Senha muito fraca"
+	        message: "Contraseña demasiado debil"
 	    }
 	    */
 	},
