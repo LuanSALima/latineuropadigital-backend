@@ -45,20 +45,22 @@ class UserController {
 
 	async createAdmin(request, response) {
 		try {
-			const { username, email, phone, password } = request.body;
+			if(await User.exists({role: Roles.Admin})) {
+				throw new Error("Já existe um usuário Admin");
+			}
 
 			const user = await User.create({
-				username,
-				email,
-				phone,
-				password,
+				username: 'admin',
+				email: 'adm@example.com',
+				password: 'admin',
 				role: Roles.Admin
 			});
 
 			return response
 				.status(200)
 				.json({
-					success: true
+					success: true,
+					message: 'Primeiro Admin Criado'
 				});
 		} catch (error) {
 			return response.status(400).json(handleErrors(error));
@@ -84,11 +86,17 @@ class UserController {
 
 	async delete (request, response) {
 		try {
-			const user = await User.findByIdAndDelete(request.params.id);
+			const user = await User.findById(request.params.id);
 			
 			if (!user) {
 		        throw new Error("¡El usuario no existe!");
-		     }
+		    }
+
+		    if(user.role === Roles.Admin) {
+		    	throw new Error("No es posible eliminar el administrador");
+		    }
+
+		    await user.remove();
 
 			return response.json({
 				success: true,
