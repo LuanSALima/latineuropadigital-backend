@@ -100,8 +100,19 @@ class NoticeController {
 		    	for(const tag of notice.tags) {
 		    		tags.push(tag.title);
 		    	}
-		    	notice.tags = tags; //Instead of sending a array of objects, send a array of strings
-		    	notice.author = notice.author.username; //Instead of sending a object of user, send the username
+
+		    	if(notice.tags) {
+		    		notice.tags = tags; //Instead of sending a array of objects, send a array of strings
+		    	} else {
+		    		notice.tags = ['Etiquetas excluidas'];
+		    	}
+
+		    	if(notice.author) {
+		    		notice.author = notice.author.username; //Instead of sending a object of user, send the username
+		    	} else {
+		    		notice.author = 'Autor eliminado';
+		    	}
+		    	
 		    }
 
 		    const totalNotices = await Notice.countDocuments({});
@@ -229,8 +240,19 @@ class NoticeController {
 	    	for(const tag of noticeJSON.tags) {
 	    		tags.push(tag.title);
 	    	}
-	    	noticeJSON.tags = tags; //Instead of sending a array of objects, send a array of strings
-	    	noticeJSON.author = noticeJSON.author.username; //Instead of sending a object, send a string
+
+	    	if(noticeJSON.tags) {
+	    		noticeJSON.tags = tags; //Instead of sending a array of objects, send a array of strings
+	    	} else {
+	    		noticeJSON.tags = ['Etiquetas excluidas'];
+	    	}
+
+	    	if(noticeJSON.author) {
+	    		noticeJSON.author = noticeJSON.author.username; //Instead of sending a object of user, send the username
+	    	} else {
+	    		noticeJSON.author = 'Autor eliminado';
+	    	}
+	    	
 
 			return response.json({
 				success: true,

@@ -100,8 +100,18 @@ class DirectoryController {
 		    	for(const tag of directory.tags) {
 		    		tags.push(tag.title);
 		    	}
-		    	directory.tags = tags; //Instead of sending a array of objects, send a array of strings
-		    	directory.author = directory.author.username; //Instead of sending a object of user, send the username
+
+		    	if(directory.tags) {
+		    		directory.tags = tags; //Instead of sending a array of objects, send a array of strings
+		    	} else {
+		    		directory.tags = ['Etiquetas excluidas'];
+		    	}
+
+		    	if(directory.author) {
+		    		directory.author = directory.author.username; //Instead of sending a object of user, send the username
+		    	} else {
+		    		directory.author = 'Autor eliminado';
+		    	}
 		    }
 
 
@@ -230,8 +240,18 @@ class DirectoryController {
 	    	for(const tag of directoryJSON.tags) {
 	    		tags.push(tag.title);
 	    	}
-	    	directoryJSON.tags = tags; //Instead of sending a array of objects, send a array of strings
-	    	directoryJSON.author = directoryJSON.author.username; //Instead of sending a object, send a string
+
+	    	if(directoryJSON.tags) {
+	    		directoryJSON.tags = tags; //Instead of sending a array of objects, send a array of strings
+	    	} else {
+	    		directoryJSON.tags = ['Etiquetas excluidas'];
+	    	}
+
+	    	if(directoryJSON.author) {
+	    		directoryJSON.author = directoryJSON.author.username; //Instead of sending a object of user, send the username
+	    	} else {
+	    		directoryJSON.author = 'Autor eliminado';
+	    	}
 
 			return response.json({
 				success: true,

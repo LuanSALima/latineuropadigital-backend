@@ -100,8 +100,18 @@ class CourseController {
 		    	for(const tag of course.tags) {
 		    		tags.push(tag.title);
 		    	}
-		    	course.tags = tags; //Instead of sending a array of objects, send a array of strings
-		    	course.author = course.author.username; //Instead of sending a object of user, send the username
+
+		    	if(course.tags) {
+		    		course.tags = tags; //Instead of sending a array of objects, send a array of strings
+		    	} else {
+		    		course.tags = ['Etiquetas excluidas'];
+		    	}
+
+		    	if(course.author) {
+		    		course.author = course.author.username; //Instead of sending a object of user, send the username
+		    	} else {
+		    		course.author = 'Autor eliminado';
+		    	}
 		    }
 
 		    const totalCourses = await Course.countDocuments({});
@@ -229,8 +239,18 @@ class CourseController {
 	    	for(const tag of courseJSON.tags) {
 	    		tags.push(tag.title);
 	    	}
-	    	courseJSON.tags = tags; //Instead of sending a array of objects, send a array of strings
-	    	courseJSON.author = courseJSON.author.username; //Instead of sending a object, send a string
+
+	    	if(courseJSON.tags) {
+	    		courseJSON.tags = tags; //Instead of sending a array of objects, send a array of strings
+	    	} else {
+	    		courseJSON.tags = ['Etiquetas excluidas'];
+	    	}
+
+	    	if(courseJSON.author) {
+	    		courseJSON.author = courseJSON.author.username; //Instead of sending a object of user, send the username
+	    	} else {
+	    		courseJSON.author = 'Autor eliminado';
+	    	}
 
 			return response.json({
 				success: true,

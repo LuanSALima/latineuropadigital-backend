@@ -100,8 +100,18 @@ class EventController {
 		    	for(const tag of event.tags) {
 		    		tags.push(tag.title);
 		    	}
-		    	event.tags = tags; //Instead of sending a array of objects, send a array of strings
-		    	event.author = event.author.username; //Instead of sending a object of user, send the username
+
+		    	if(event.tags) {
+		    		event.tags = tags; //Instead of sending a array of objects, send a array of strings
+		    	} else {
+		    		event.tags = ['Etiquetas excluidas'];
+		    	}
+
+		    	if(event.author) {
+		    		event.author = event.author.username; //Instead of sending a object of user, send the username
+		    	} else {
+		    		event.author = 'Autor eliminado';
+		    	}
 		    }
 
 		    const totalEvents = await Event.countDocuments({});
@@ -229,8 +239,18 @@ class EventController {
 	    	for(const tag of eventJSON.tags) {
 	    		tags.push(tag.title);
 	    	}
-	    	eventJSON.tags = tags; //Instead of sending a array of objects, send a array of strings
-	    	eventJSON.author = eventJSON.author.username; //Instead of sending a object, send a string
+
+	    	if(eventJSON.tags) {
+	    		eventJSON.tags = tags; //Instead of sending a array of objects, send a array of strings
+	    	} else {
+	    		eventJSON.tags = ['Etiquetas excluidas'];
+	    	}
+
+	    	if(eventJSON.author) {
+	    		eventJSON.author = eventJSON.author.username; //Instead of sending a object of user, send the username
+	    	} else {
+	    		eventJSON.author = 'Autor eliminado';
+	    	}
 
 			return response.json({
 				success: true,
