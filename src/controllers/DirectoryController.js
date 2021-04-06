@@ -28,7 +28,25 @@ class DirectoryController {
 				}
 			}
 
-			//If have a query for page or results
+			let results = 30;
+
+			//If have a query for results
+			if(request.query.results) {
+				//Assign results value and parse for int
+				results = parseInt(request.query.results);
+				//if results value is not a integer
+				if(!Number.isInteger(results)) {
+					throw new Error("El número de resultados debe ser un número");
+				}
+				//if results value is less than 1
+				if(results < 1) {
+					throw new Error("El número de resultados debe ser un número mayor que 0");
+				}
+			}
+			//Assign to query a limit of results
+			query.limit(results);
+
+			//If have a query for page
 			if(request.query.page) {
 				//Assign page value at a constant and parse for int
 				const page = parseInt(request.query.page);
@@ -40,11 +58,8 @@ class DirectoryController {
 				if(page < 1) {
 					throw new Error("La página debe ser un número mayor que 0");
 				}
-
-				const results = 30;
-
-				//Assign to query a limit of results and skip by page and results
-				query.limit(results).skip((page-1)*results);
+				//Assign to query skip by page and results
+				query.skip((page-1)*results);
 			}
 
 			if(request.query.views) {

@@ -61,20 +61,49 @@ class FeaturedController {
 
 	async changePosition(request, response) {
 		try {
-			const {position} = request.body;
-
-			const featured = await Featured.findByIdAndUpdate(request.params.id, {
-	  			'$set': {
-	  				position
-	  			}
-  			}, {
-        		new: true, // {new: false} Para retornar a versão antiga do bcd, 
-       			runValidators: true, // {runValidators: true} Para validar os campos antes do update
-      		});
+			const featured = await Featured.findById(request.params.id);
 
 			if(!featured) {
 				throw new Error("Destacado no encontrado");
 			}
+
+			const newPosition = parseInt(request.body.position);
+
+			if(!Number.isInteger(newPosition)) {
+				throw new Error("La posición debe ser un número");
+			}
+
+			if(newPosition < 1) {
+				throw new Error("La página debe ser un número mayor que 0");
+			}
+
+			const oldPosition = featured.position;
+
+			const allFeatureds = await Featured.find().sort({position: 'asc'});
+
+		    for(const actualFeatured of allFeatureds) {
+		    	const actualFeaturedPosition = actualFeatured.position;
+
+		    	if(actualFeaturedPosition === newPosition) {
+		    		if(actualFeaturedPosition > oldPosition) {
+		    			actualFeatured.position = actualFeaturedPosition-1;
+		    		} else {
+		    			actualFeatured.position = actualFeaturedPosition+1;
+		    		}
+		    	} else {
+		    		if(actualFeaturedPosition === oldPosition) {
+		    			actualFeatured.position = newPosition;
+		    		} else {
+		    			if(actualFeaturedPosition < oldPosition && actualFeaturedPosition > newPosition) {
+				    		actualFeatured.position = actualFeaturedPosition+1;
+				    	}
+				    	if(actualFeaturedPosition > oldPosition && actualFeaturedPosition < newPosition) {
+				    		actualFeatured.position = actualFeaturedPosition-1;
+				    	}
+		    		}
+		    	}
+		    	actualFeatured.save();
+		    }
 
 			return response.json({
 				success: true,
@@ -121,7 +150,18 @@ class FeaturedController {
 		        throw new Error("¡El destacado no existe!");
 		    }
 
+		    const deletePosition = featured.position;
+
 		    await featured.remove();
+
+		    const allFeatureds = await Featured.find().sort({position: 'asc'});
+
+		    for(const actualFeatured of allFeatureds) {
+		    	if(actualFeatured.position > deletePosition) {
+		    		actualFeatured.position = actualFeatured.position-1;
+		    		await actualFeatured.save();
+		    	}
+		    }
 
 			return response.json({
 				success: true,
