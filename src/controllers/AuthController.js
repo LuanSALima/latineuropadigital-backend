@@ -22,13 +22,14 @@ class AuthController {
 				throw new Error("Contraseña incorrecta");
 			}
 
-			user.password = undefined;
-
 			return response
 				.status(200)
 				.json({
 					success: true,
-					user,
+					user: {
+						username: user.username,
+						role: user.role
+					},
 					token: jwt.generateToken(user._id, user.role)
 				});
 	    } catch (error) {
