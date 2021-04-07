@@ -3,11 +3,6 @@ let Tags = require('../schemas/tags.schema');
 let Featured = require('../schemas/featured.schema');
 
 const handleErrors = require('../helpers/error-handler');
-const validation = require('../helpers/validation');
-
-const jwt = require('../helpers/jwt');
-
-const fileSystem = require('fs');
 
 class DirectoryController {
 	async list(request, response) {
@@ -15,7 +10,6 @@ class DirectoryController {
 			const query = Directory.find();
 
 			query.populate({ path: 'tags', select: 'title -_id' });
-			query.populate({ path: 'author', select: 'username -_id'});
 
 			if(request.query.tag) {
 				const tag = request.query.tag;
@@ -62,50 +56,12 @@ class DirectoryController {
 				query.skip((page-1)*results);
 			}
 
-			if(request.query.views) {
-				switch(request.query.views) {
-					case 'daily' :
-						var today = new Date();
-						var yesterday = new Date();
-	  					yesterday.setDate(today.getDate()-1);
-
-	  					query.where({createdAt: {"$gte": yesterday, "$lt": today}}).sort({views: 'desc'});
-						break;
-					case 'weekly' :
-						var today = new Date();
-						var lastWeek = new Date();
-	  					lastWeek.setDate(today.getDate()-7);
-
-	  					query.where({createdAt: {"$gte": lastWeek, "$lt": today}}).sort({views: 'desc'});
-						break;
-					case 'monthly' :
-						var today = new Date();
-						var lastMonth = new Date();
-	  					lastMonth.setDate(1);
-	  					lastMonth.setMonth(today.getMonth());
-	  					lastMonth.setHours(0);
-	  					lastMonth.setMinutes(0);
-
-	  					query.where({createdAt: {"$gte": lastMonth, "$lt": today}}).sort({views: 'desc'});
-						break;
-					case 'allTime' :
-	  					query.sort({views: 'desc'});
-						break;
-					default:
-						throw new Error(request.query.views+" no es una fecha valida");
-				}
-			} else {
-				query.sort({createdAt: 'desc'});
-			}
-
 			query.lean(); //Transform the Mongoose Documents into a plain javascript object. That way we can set the property the way we want
 			const directories = await query.exec();
 
 			if (directories.length === 0) {
 				if(request.query.page) {
 					throw new Error("Esta página no tiene directorios");
-				} else if(request.query.views) {
-					throw new Error("No hay directorios registrados dentro del período de tiempo: "+request.query.views);
 				} else {
 					throw new Error("¡No hay directorios registrados en la base de datos!");
 				}
@@ -122,14 +78,7 @@ class DirectoryController {
 		    	} else {
 		    		directory.tags = ['Etiquetas excluidas'];
 		    	}
-
-		    	if(directory.author) {
-		    		directory.author = directory.author.username; //Instead of sending a object of user, send the username
-		    	} else {
-		    		directory.author = 'Autor eliminado';
-		    	}
 		    }
-
 
 		    const totalDirectories = await Directory.countDocuments({});
 
@@ -167,10 +116,22 @@ class DirectoryController {
 
 	async create(request, response) {
 		try {
-			const { title, subtitle, content, link } = request.body;
+			const { 
+				businessName,
+				businessAdress,
+				businessCity,
+				businessProvince,
+				businessPostalCode,
+				businessPhone,
+				businessWebsite,
+				businessDescription,
+				contactName,
+				contactPhone,
+				contactEmail,
+				contactRole
+			} = request.body;
+
 			let {tags} = request.body;
-			
-			const loggedUser = request.user.id;
 
 			if(typeof(tags) === "undefined") {
 				throw new Error("Se requieren al menos 1 etiquetas");
@@ -196,34 +157,22 @@ class DirectoryController {
 				throw new Error("Etiquetas: "+tagsNotFound.toString()+" no existen");
 			}
 
-			validation.validateImage(request.files);
-
-		    const image = request.files.image;
-
-			if(!loggedUser) {
-				throw new Error("Debe iniciar sesión para saber quién publicó este directorio");
-			}
-
-		    //__basedir is a Global Variable that we assigned at our server.js that return the root path of the project
-		    const imageName = `${Date.now()}-${image.name}`;
-		    const imagePath = `${__basedir}/public/images/directories/${imageName}`;
-
 			const directory = await Directory.create({
-				author: loggedUser,
-				title,
-				subtitle,
-				content,
-				imagePath: '/images/directories/'+imageName,
-				link,
+				businessName,
+				businessAdress,
+				businessCity,
+				businessProvince,
+				businessPostalCode,
+				businessPhone,
+				businessWebsite,
+				businessDescription,
+				contactName,
+				contactPhone,
+				contactEmail,
+				contactRole,
+				status: 'pendent',
 				tags: idTags
 			});
-
-		    //move the image to the path 'imagePath'
-		    image.mv(imagePath, function (err) {
-		        if (err) {
-		            throw new Error("Hubo un error al registrar la imagen.");
-		        }
-		    });
 
 			return response.status(200).json({
 				success: true,
@@ -238,17 +187,10 @@ class DirectoryController {
 	async find(request, response) {
 		try {
 			const directory = await Directory.findById(request.params.id)
-				.populate({ path: 'tags', select: 'title -_id' })
-				.populate({ path: 'author', select: 'username -_id' });
+				.populate({ path: 'tags', select: 'title -_id' });
 
 			if (!directory) {
 				throw new Error("Directorio no encontrado");
-			}
-
-			//Se não estiver logado
-			if(!jwt.checkToken(request)) {
-				directory.views = directory.views + 1;
-				directory.save({ validateBeforeSave: false });
 			}
 
 			const directoryJSON = directory.toJSON();
@@ -262,12 +204,6 @@ class DirectoryController {
 	    		directoryJSON.tags = tags; //Instead of sending a array of objects, send a array of strings
 	    	} else {
 	    		directoryJSON.tags = ['Etiquetas excluidas'];
-	    	}
-
-	    	if(directoryJSON.author) {
-	    		directoryJSON.author = directoryJSON.author.username; //Instead of sending a object of user, send the username
-	    	} else {
-	    		directoryJSON.author = 'Autor eliminado';
 	    	}
 
 	    	const featured = await Featured.findOne({post: directoryJSON._id});
@@ -284,8 +220,22 @@ class DirectoryController {
 
 	async update(request, response) {
 		try {
+			const { 
+				businessName,
+				businessAdress,
+				businessCity,
+				businessProvince,
+				businessPostalCode,
+				businessPhone,
+				businessWebsite,
+				businessDescription,
+				contactName,
+				contactPhone,
+				contactEmail,
+				contactRole,
+				status
+			} = request.body;
 
-			const { title, subtitle, content, link } = request.body;
 			let {tags} = request.body;
 
 			const directory = await Directory.findById(request.params.id);
@@ -318,33 +268,19 @@ class DirectoryController {
 				throw new Error("Etiquetas: "+tagsNotFound.toString()+" no existen");
 			}
 
-			if (request.files) {
-				validation.validateImage(request.files);
-
-		    	const image = request.files.image;
-
-		    	//__basedir is a Global Variable that we assigned at our server.js that return the root path of the project
-
-		    	//Removendo a imagem antiga
-		    	fileSystem.unlinkSync(__basedir+"/public"+directory.imagePath);
-
-			    const imageName = `${Date.now()}-${image.name}`;
-			    const imagePath = `${__basedir}/public/images/directories/${imageName}`;
-
-				directory.imagePath = '/images/directories/'+imageName;
-
-			    //Adicionando a imagem nova
-			    image.mv(imagePath, function (err) {
-			        if (err) {
-			            throw new Error("Hubo un error al registrar la imagen.");
-			        }
-			    });
-			}
-
-			directory.title = title;
-			directory.subtitle = subtitle;
-			directory.content = content;
-			directory.link = link;
+			directory.businessName = businessName;
+			directory.businessAdress = businessAdress;
+			directory.businessCity = businessCity;
+			directory.businessProvince = businessProvince;
+			directory.businessPostalCode = businessPostalCode;
+			directory.businessPhone = businessPhone;
+			directory.businessWebsite = businessWebsite;
+			directory.businessDescription = businessDescription;
+			directory.contactName = contactName;
+			directory.contactPhone = contactPhone;
+			directory.contactEmail = contactEmail;
+			directory.contactRole = contactRole;
+			directory.status = status;
 			directory.tags = idTags;
 
 			await directory.save();
