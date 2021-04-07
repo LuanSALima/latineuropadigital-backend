@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
 
+const fileSystem = require('fs');
+
 const Schema = mongoose.Schema;
 
 const directorySchema = new Schema({
@@ -42,6 +44,7 @@ const directorySchema = new Schema({
 		type: String,
 		required: [true, 'Es necesario informar la descripción de la empresa'],
 		trim: true,
+		maxlength: [400, "Descripción muy larga de la empresa"],
 	},
 	contactName: {
 		type: String,
@@ -63,6 +66,10 @@ const directorySchema = new Schema({
 		required: [true, 'Es necesario informar la ocupación del contacto'],
 		trim: true,
 	},
+	imagePath: {
+		type: String,
+		required: [true, 'Es necesario informar una imagen de este directorio']
+	},
 	status: {
 		type: String,
 		enum: ['accepted', 'pendent'],
@@ -74,6 +81,17 @@ const directorySchema = new Schema({
 	}]
 }, {
 	timestamps: true,
+});
+
+directorySchema.pre("remove", async function (next) {
+	/*
+	fileSystem.unlinkSync(__basedir+"/public"+this.imagePath);
+	next();
+	*/
+	try {
+		fileSystem.unlinkSync(__basedir+"/public"+this.imagePath);
+	} catch (error) {}
+  	next();
 });
 
 const Directory = mongoose.model('Directory', directorySchema);

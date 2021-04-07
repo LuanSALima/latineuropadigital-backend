@@ -4,6 +4,9 @@ let Featured = require('../schemas/featured.schema');
 
 const handleErrors = require('../helpers/error-handler');
 
+const validation = require('../helpers/validation');
+const fileSystem = require('fs');
+
 class DirectoryController {
 	async list(request, response) {
 		try {
@@ -157,6 +160,14 @@ class DirectoryController {
 				throw new Error("Etiquetas: "+tagsNotFound.toString()+" no existen");
 			}
 
+			validation.validateImage(request.files);
+
+		    const image = request.files.image;
+
+		    //__basedir is a Global Variable that we assigned at our server.js that return the root path of the project
+		    const imageName = `${Date.now()}-${image.name}`;
+		    const imagePath = `${__basedir}/public/images/directories/${imageName}`;
+
 			const directory = await Directory.create({
 				businessName,
 				businessAdress,
@@ -170,9 +181,17 @@ class DirectoryController {
 				contactPhone,
 				contactEmail,
 				contactRole,
+				imagePath : '/images/directories/'+imageName,
 				status: 'pendent',
 				tags: idTags
 			});
+
+			//move the image to the path 'imagePath'
+		    image.mv(imagePath, function (err) {
+		        if (err) {
+		            throw new Error("Hubo un error al registrar la imagen.");
+		        }
+		    });
 
 			return response.status(200).json({
 				success: true,
@@ -266,6 +285,29 @@ class DirectoryController {
 
 			if(tagsNotFound.length) {
 				throw new Error("Etiquetas: "+tagsNotFound.toString()+" no existen");
+			}
+
+			if (request.files) {
+				validation.validateImage(request.files);
+
+		    	const image = request.files.image;
+
+		    	//__basedir is a Global Variable that we assigned at our server.js that return the root path of the project
+
+		    	//Removendo a imagem antiga
+		    	fileSystem.unlinkSync(__basedir+"/public"+directory.imagePath);
+
+			    const imageName = `${Date.now()}-${image.name}`;
+			    const imagePath = `${__basedir}/public/images/directories/${imageName}`;
+
+				directory.imagePath = '/images/directories/'+imageName;
+
+			    //Adicionando a imagem nova
+			    image.mv(imagePath, function (err) {
+			        if (err) {
+			            throw new Error("Hubo un error al registrar la imagen.");
+			        }
+			    });
 			}
 
 			directory.businessName = businessName;
