@@ -3,12 +3,99 @@ let Tags = require('../schemas/tags.schema');
 let Featured = require('../schemas/featured.schema');
 
 const handleErrors = require('../helpers/error-handler');
-
 const validation = require('../helpers/validation');
+
 const fileSystem = require('fs');
 
 class DirectoryController {
 	async list(request, response) {
+		try {
+			const query = Directory.find({status: 'accepted'});
+
+			query.populate({ path: 'tags', select: 'title -_id' });
+
+			if(request.query.tag) {
+				const tag = request.query.tag;
+
+				if(await Tags.exists({title: { '$regex' : tag, '$options' : 'i' }, types: 'Directory'})) {
+					query.find({tags: {'$regex': tag, '$options': 'i'}});
+				} else {
+					//Tag não existe
+					throw new Error("La etiqueta ("+tag+") no existe como una etiqueta de directorio");
+				}
+			}
+
+			let results = 30;
+
+			//If have a query for results
+			if(request.query.results) {
+				//Assign results value and parse for int
+				results = parseInt(request.query.results);
+				//if results value is not a integer
+				if(!Number.isInteger(results)) {
+					throw new Error("El número de resultados debe ser un número");
+				}
+				//if results value is less than 1
+				if(results < 1) {
+					throw new Error("El número de resultados debe ser un número mayor que 0");
+				}
+			}
+			//Assign to query a limit of results
+			query.limit(results);
+
+			//If have a query for page
+			if(request.query.page) {
+				//Assign page value at a constant and parse for int
+				const page = parseInt(request.query.page);
+				//if page value is not a integer
+				if(!Number.isInteger(page)) {
+					throw new Error("La página debe ser un número");
+				}
+				//if page value is less than 1
+				if(page < 1) {
+					throw new Error("La página debe ser un número mayor que 0");
+				}
+				//Assign to query skip by page and results
+				query.skip((page-1)*results);
+			}
+
+			query.lean(); //Transform the Mongoose Documents into a plain javascript object. That way we can set the property the way we want
+			const directories = await query.exec();
+
+			if (directories.length === 0) {
+				if(request.query.page) {
+					throw new Error("Esta página no tiene directorios aceptados");
+				} else {
+					throw new Error("¡No hay directorios aceptados en la base de datos!");
+				}
+		    }
+
+		    for(const directory of directories) {
+		    	const tags = [];
+		    	for(const tag of directory.tags) {
+		    		tags.push(tag.title);
+		    	}
+
+		    	if(directory.tags) {
+		    		directory.tags = tags; //Instead of sending a array of objects, send a array of strings
+		    	} else {
+		    		directory.tags = ['Etiquetas excluidas'];
+		    	}
+		    }
+
+		    const totalDirectories = await Directory.countDocuments({status: 'accepted'});
+
+			return response.status(200).json({
+				success: true,
+				totalDirectories,
+				directories
+			});
+		} catch (error) {
+			return response.status(400).json(handleErrors(error));
+		}
+	}
+
+	async listAll(request, response) {
 		try {
 			const query = Directory.find();
 
@@ -21,7 +108,7 @@ class DirectoryController {
 					query.find({tags: {'$regex': tag, '$options': 'i'}});
 				} else {
 					//Tag não existe
-					throw new Error("A etiqueta ("+tag+") no existe como una etiqueta de directorio");
+					throw new Error("La etiqueta ("+tag+") no existe como una etiqueta de directorio");
 				}
 			}
 
@@ -84,6 +171,93 @@ class DirectoryController {
 		    }
 
 		    const totalDirectories = await Directory.countDocuments({});
+
+			return response.status(200).json({
+				success: true,
+				totalDirectories,
+				directories
+			});
+		} catch (error) {
+			return response.status(400).json(handleErrors(error));
+		}
+	}
+
+	async listByStatus(request, response) {
+		try {
+			const query = Directory.find({status: request.params.status});
+
+			query.populate({ path: 'tags', select: 'title -_id' });
+
+			if(request.query.tag) {
+				const tag = request.query.tag;
+
+				if(await Tags.exists({title: { '$regex' : tag, '$options' : 'i' }, types: 'Directory'})) {
+					query.find({tags: {'$regex': tag, '$options': 'i'}});
+				} else {
+					//Tag não existe
+					throw new Error("La etiqueta ("+tag+") no existe como una etiqueta de directorio");
+				}
+			}
+
+			let results = 30;
+
+			//If have a query for results
+			if(request.query.results) {
+				//Assign results value and parse for int
+				results = parseInt(request.query.results);
+				//if results value is not a integer
+				if(!Number.isInteger(results)) {
+					throw new Error("El número de resultados debe ser un número");
+				}
+				//if results value is less than 1
+				if(results < 1) {
+					throw new Error("El número de resultados debe ser un número mayor que 0");
+				}
+			}
+			//Assign to query a limit of results
+			query.limit(results);
+
+			//If have a query for page
+			if(request.query.page) {
+				//Assign page value at a constant and parse for int
+				const page = parseInt(request.query.page);
+				//if page value is not a integer
+				if(!Number.isInteger(page)) {
+					throw new Error("La página debe ser un número");
+				}
+				//if page value is less than 1
+				if(page < 1) {
+					throw new Error("La página debe ser un número mayor que 0");
+				}
+				//Assign to query skip by page and results
+				query.skip((page-1)*results);
+			}
+
+			query.lean(); //Transform the Mongoose Documents into a plain javascript object. That way we can set the property the way we want
+			const directories = await query.exec();
+
+			if (directories.length === 0) {
+				if(request.query.page) {
+					throw new Error("Esta página no tiene directorios "+(request.params.status));
+				} else {
+					throw new Error("¡No hay directorios "+(request.params.status)+" en la base de datos!");
+				}
+		    }
+
+		    for(const directory of directories) {
+		    	const tags = [];
+		    	for(const tag of directory.tags) {
+		    		tags.push(tag.title);
+		    	}
+
+		    	if(directory.tags) {
+		    		directory.tags = tags; //Instead of sending a array of objects, send a array of strings
+		    	} else {
+		    		directory.tags = ['Etiquetas excluidas'];
+		    	}
+		    }
+
+		    const totalDirectories = await Directory.countDocuments({status: request.params.status});
 
 			return response.status(200).json({
 				success: true,
