@@ -47,7 +47,7 @@ class FeaturedController {
 					throw new Error('Tipo de publicación no válida');
 			}
 
-			if(post.status && post.status === 'pendent') {
+			if(post.status && post.status !== 'accepted') {
 				throw new Error("Lo destacado no puede ser un "+postType+" con estado pendiente");
 			}
 
