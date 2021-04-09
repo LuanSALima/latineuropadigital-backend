@@ -5,6 +5,8 @@ let Featured = require('../schemas/featured.schema');
 const handleErrors = require('../helpers/error-handler');
 const validation = require('../helpers/validation');
 
+const jwt = require('../helpers/jwt');
+
 const fileSystem = require('fs');
 
 class EventController {
@@ -386,6 +388,12 @@ class EventController {
 
 			if (!event) {
 				throw new Error("Evento no encontrado");
+			}
+
+			if(event.status === 'pendent') {
+				if(!jwt.checkToken(request)) {
+					throw new Error("Evento no encontrado");
+				}
 			}
 
 			const eventJSON = event.toJSON();

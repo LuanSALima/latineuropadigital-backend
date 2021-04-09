@@ -5,6 +5,8 @@ let Featured = require('../schemas/featured.schema');
 const handleErrors = require('../helpers/error-handler');
 const validation = require('../helpers/validation');
 
+const jwt = require('../helpers/jwt');
+
 const fileSystem = require('fs');
 
 class DirectoryController {
@@ -384,6 +386,12 @@ class DirectoryController {
 
 			if (!directory) {
 				throw new Error("Directorio no encontrado");
+			}
+
+			if(event.status === 'pendent') {
+				if(!jwt.checkToken(request)) {
+					throw new Error("Evento no encontrado");
+				}
 			}
 
 			const directoryJSON = directory.toJSON();
