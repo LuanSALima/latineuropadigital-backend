@@ -388,9 +388,9 @@ class DirectoryController {
 				throw new Error("Directorio no encontrado");
 			}
 
-			if(event.status === 'pendent') {
+			if(directory.status === 'pendent') {
 				if(!jwt.checkToken(request)) {
-					throw new Error("Evento no encontrado");
+					throw new Error("Directorio no encontrado");
 				}
 			}
 
