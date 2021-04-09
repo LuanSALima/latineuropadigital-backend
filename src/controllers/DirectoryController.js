@@ -121,7 +121,7 @@ class DirectoryController {
 		try {
 			const { 
 				businessName,
-				businessAdress,
+				businessAddress,
 				businessCity,
 				businessProvince,
 				businessPostalCode,
@@ -170,7 +170,7 @@ class DirectoryController {
 
 			const directory = await Directory.create({
 				businessName,
-				businessAdress,
+				businessAddress,
 				businessCity,
 				businessProvince,
 				businessPostalCode,
@@ -241,7 +241,7 @@ class DirectoryController {
 		try {
 			const { 
 				businessName,
-				businessAdress,
+				businessAddress,
 				businessCity,
 				businessProvince,
 				businessPostalCode,
@@ -311,7 +311,7 @@ class DirectoryController {
 			}
 
 			directory.businessName = businessName;
-			directory.businessAdress = businessAdress;
+			directory.businessAddress = businessAddress;
 			directory.businessCity = businessCity;
 			directory.businessProvince = businessProvince;
 			directory.businessPostalCode = businessPostalCode;

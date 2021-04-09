@@ -6,42 +6,85 @@ const fileSystem = require('fs');
 const Schema = mongoose.Schema;
 
 const eventSchema = new Schema({
-	author: {
-		type: Schema.Types.ObjectId,
-		ref: "User",
-		required: [true, 'Es necesario informar quien publicó este evento'],
-	},
-	title: {
+	eventName: {
 		type: String,
-		required: [true, 'Es necesario informar el título de este evento'],
+		required: [true, 'Es necesario informar el nombre del evento'],
 		trim: true,
 	},
-	subtitle: {
+	eventOrganizedBy: {
 		type: String,
-		required: [true, 'Es necesario informar el subtítulo de este evento'],
-		trim: true
+		required: [true, 'Es necesario informar quién es el organizador del evento'],
+		trim: true,
 	},
-	content: {
+	eventLocation: {
 		type: String,
-		required: [true, 'Es necesario informar el contenido de este evento'],
-		trim: true
+		required: [true, 'Es necesario informar la ubicación del evento'],
+		trim: true,
+	},
+	eventAddress: {
+		type: String,
+		required: [true, 'Es necesario informar la dirección del evento'],
+		trim: true,
+	},
+	eventDate: {
+		type: String,
+		required: [true, 'Es necesario informar la dirección del evento'],
+		trim: true,
+	},
+	eventTime: {
+		type: String,
+		required: [true, 'Es necesario informar la hora del evento'],
+		trim: true,
+	},
+	eventTicketPrice: {
+		type: String,
+		required: [true, 'Es necesario informar el precio del evento'],
+		trim: true,
+	},
+	eventMoreInfo: {
+		type: String,
+		required: [true, 'Es necesario informar más información sobre el evento'],
+		trim: true,
+	},
+	eventDescription: {
+		type: String,
+		required: [true, 'Es necesario informar la descripción del evento'],
+		trim: true,
+		maxlength: [215, "Descripción muy larga del evento"],
+	},
+	contactName: {
+		type: String,
+		required: [true, 'Es necesario informar el nombre del contacto'],
+		trim: true,
+	},
+	contactPhone: {
+		type: String,
+		required: [true, 'Es necesario informar el número de teléfono de contacto'],
+		trim: true,
+	},
+	contactEmail: {
+		type: String,
+		required: [true, 'Es necesario informar el correo electrónico de contacto'],
+		trim: true,
+	},
+	contactRole: {
+		type: String,
+		required: [true, 'Es necesario informar la ocupación del contacto'],
+		trim: true,
 	},
 	imagePath: {
 		type: String,
 		required: [true, 'Es necesario informar una imagen de este evento']
 	},
-	link: {
+	status: {
 		type: String,
-		required: [true, 'Es necesario informar o link']
+		enum: ['accepted', 'pendent'],
+		required: [true, 'Es necesario informar cuál es el estado del evento']
 	},
 	tags: [{
 		type: Schema.Types.ObjectId,
 		ref: "Tag"
-	}],
-	views: {
-		type: Number,
-		default: 0
-	}
+	}]
 }, {
 	timestamps: true,
 });

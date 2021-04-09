@@ -15,7 +15,6 @@ class EventController {
 			const query = Event.find();
 
 			query.populate({ path: 'tags', select: 'title -_id' });
-			query.populate({ path: 'author', select: 'username -_id'});
 
 			if(request.query.tag) {
 				const tag = request.query.tag;
@@ -62,50 +61,12 @@ class EventController {
 				query.skip((page-1)*results);
 			}
 
-			if(request.query.views) {
-				switch(request.query.views) {
-					case 'daily' :
-						var today = new Date();
-						var yesterday = new Date();
-	  					yesterday.setDate(today.getDate()-1);
-
-	  					query.where({createdAt: {"$gte": yesterday, "$lt": today}}).sort({views: 'desc'});
-						break;
-					case 'weekly' :
-						var today = new Date();
-						var lastWeek = new Date();
-	  					lastWeek.setDate(today.getDate()-7);
-
-	  					query.where({createdAt: {"$gte": lastWeek, "$lt": today}}).sort({views: 'desc'});
-						break;
-					case 'monthly' :
-						var today = new Date();
-						var lastMonth = new Date();
-	  					lastMonth.setDate(1);
-	  					lastMonth.setMonth(today.getMonth());
-	  					lastMonth.setHours(0);
-	  					lastMonth.setMinutes(0);
-
-	  					query.where({createdAt: {"$gte": lastMonth, "$lt": today}}).sort({views: 'desc'});
-						break;
-					case 'allTime' :
-	  					query.sort({views: 'desc'});
-						break;
-					default:
-						throw new Error(request.query.views+" no es una fecha valida");
-				}
-			} else {
-				query.sort({createdAt: 'desc'});
-			}
-
 			query.lean(); //Transform the Mongoose Documents into a plain javascript object. That way we can set the property the way we want
 			const events = await query.exec();
 
 			if (events.length === 0) {
 				if(request.query.page) {
 					throw new Error("Esta página no tiene eventos");
-				} else if(request.query.views) {
-					throw new Error("No hay eventos registrados dentro del plazo: "+request.query.views);
 				} else {
 					throw new Error("¡No hay eventos registrados en la base de datos!");
 				}
@@ -121,12 +82,6 @@ class EventController {
 		    		event.tags = tags; //Instead of sending a array of objects, send a array of strings
 		    	} else {
 		    		event.tags = ['Etiquetas excluidas'];
-		    	}
-
-		    	if(event.author) {
-		    		event.author = event.author.username; //Instead of sending a object of user, send the username
-		    	} else {
-		    		event.author = 'Autor eliminado';
 		    	}
 		    }
 
@@ -166,10 +121,23 @@ class EventController {
 
 	async create(request, response) {
 		try {
-			const { title, subtitle, content, link } = request.body;
+			const { 
+				eventName,
+				eventOrganizedBy,
+				eventLocation,
+				eventAddress,
+				eventDate,
+				eventTime,
+				eventTicketPrice,
+				eventMoreInfo,
+				eventDescription,
+				contactName,
+				contactPhone,
+				contactEmail,
+				contactRole
+			} = request.body;
+
 			let {tags} = request.body;
-			
-			const userLogged = request.user.id;
 
 			if(typeof(tags) === "undefined") {
 				throw new Error("Debes colocar al menos 1 etiqueta");
@@ -199,21 +167,26 @@ class EventController {
 
 		    const image = request.files.image;
 
-			if(!userLogged) {
-				throw new Error("Debes iniciar sesión para saber quién publicó este evento");
-			}
-
 		    //__basedir is a Global Variable that we assigned at our server.js that return the root path of the project
 		    const imageName = `${Date.now()}-${image.name}`;
 		    const imagePath = `${__basedir}/public/images/events/${imageName}`;
 
 			const event = await Event.create({
-				author: userLogged,
-				title,
-				subtitle,
-				content,
+				eventName,
+				eventOrganizedBy,
+				eventLocation,
+				eventAddress,
+				eventDate,
+				eventTime,
+				eventTicketPrice,
+				eventMoreInfo,
+				eventDescription,
+				contactName,
+				contactPhone,
+				contactEmail,
+				contactRole,
 				imagePath: '/images/events/'+imageName,
-				link,
+				status: 'pendent',
 				tags: idTags
 			});
 
@@ -237,17 +210,10 @@ class EventController {
 	async find(request, response) {
 		try {
 			const event = await Event.findById(request.params.id)
-				.populate({ path: 'tags', select: 'title -_id' })
-				.populate({ path: 'author', select: 'username -_id' });
+				.populate({ path: 'tags', select: 'title -_id' });
 
 			if (!event) {
 				throw new Error("Evento no encontrado");
-			}
-
-			//Se não estiver logado
-			if(!jwt.checkToken(request)) {
-				event.views = event.views + 1;
-				event.save({ validateBeforeSave: false });
 			}
 
 			const eventJSON = event.toJSON();
@@ -261,12 +227,6 @@ class EventController {
 	    		eventJSON.tags = tags; //Instead of sending a array of objects, send a array of strings
 	    	} else {
 	    		eventJSON.tags = ['Etiquetas excluidas'];
-	    	}
-
-	    	if(eventJSON.author) {
-	    		eventJSON.author = eventJSON.author.username; //Instead of sending a object of user, send the username
-	    	} else {
-	    		eventJSON.author = 'Autor eliminado';
 	    	}
 
 	    	const featured = await Featured.findOne({post: eventJSON._id});
@@ -283,8 +243,23 @@ class EventController {
 
 	async update(request, response) {
 		try {
+			const { 
+				eventName,
+				eventOrganizedBy,
+				eventLocation,
+				eventAddress,
+				eventDate,
+				eventTime,
+				eventTicketPrice,
+				eventMoreInfo,
+				eventDescription,
+				contactName,
+				contactPhone,
+				contactEmail,
+				contactRole,
+				status
+			} = request.body;
 
-			const { title, subtitle, content, link } = request.body;
 			let {tags} = request.body;
 
 			const event = await Event.findById(request.params.id);
@@ -340,10 +315,20 @@ class EventController {
 			    });
 			}
 
-			event.title = title;
-			event.subtitle = subtitle;
-			event.content = content;
-			event.link = link;
+			event.eventName = eventName;
+			event.eventOrganizedBy = eventOrganizedBy;
+			event.eventLocation = eventLocation;
+			event.eventAddress = eventAddress;
+			event.eventDate = eventDate;
+			event.eventTime = eventTime;
+			event.eventTicketPrice = eventTicketPrice;
+			event.eventMoreInfo = eventMoreInfo;
+			event.eventDescription = eventDescription;
+			event.contactName = contactName;
+			event.contactPhone = contactPhone;
+			event.contactEmail = contactEmail;
+			event.contactRole = contactRole;
+			event.status = status;
 			event.tags = idTags;
 
 			await event.save();

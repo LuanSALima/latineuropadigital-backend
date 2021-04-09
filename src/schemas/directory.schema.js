@@ -11,7 +11,7 @@ const directorySchema = new Schema({
 		required: [true, 'Es necesario informar el nombre de la empresa'],
 		trim: true,
 	},
-	businessAdress: {
+	businessAddress: {
 		type: String,
 		required: [true, 'Es necesario informar la dirección comercial'],
 		trim: true,
