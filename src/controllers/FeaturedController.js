@@ -1,7 +1,11 @@
 let Featured = require('../schemas/featured.schema.js');
 
-const handleErrors = require('../helpers/error-handler');
+let Event = require('../schemas/event.schema');
+let Directory = require('../schemas/directory.schema');
+let Course = require('../schemas/course.schema');
+let Notice = require('../schemas/notice.schema');
 
+const handleErrors = require('../helpers/error-handler');
 
 class FeaturedController {
 	async list(request, response) {
@@ -9,7 +13,7 @@ class FeaturedController {
 			const featureds = await Featured.find().sort({position: 'asc'}).populate('post');
 
 			if (featureds.length === 0) {
-				throw new Error("Não a Destaques cadastrados!");
+				throw new Error("No a destacados registrados");
 			}
 
 			return response.status(200).json({
@@ -23,13 +27,35 @@ class FeaturedController {
 
 	async create(request, response) {
 		try {
-			const {post, postType} = request.body;
+			const {postType} = request.body;
+			let {post} = request.body;
+
+			switch(postType) {
+				case 'Notice':
+					post = await Notice.findById(post);
+					break;
+				case 'Directory':
+					post = await Directory.findById(post);
+					break;
+				case 'Event':
+					post = await Event.findById(post);
+					break;
+				case 'Course':
+					post = await Course.findById(post);
+					break;
+				default:
+					throw new Error('Tipo de publicación no válida');
+			}
+
+			if(post.status && post.status !== 'accepted') {
+				throw new Error("Lo destacado no puede ser un "+postType+" con estado pendiente");
+			}
 
 			const numFeatureds = await Featured.countDocuments({});
 
 			const featured = await Featured.create({
 				position: numFeatureds+1,
-				post,
+				post: post._id,
 				postType
 			});
 
