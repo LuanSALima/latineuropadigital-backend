@@ -36,6 +36,9 @@ const directorySchema = new Schema({
 		required: [true, 'Es necesario informar al número de teléfono de la empresa'],
 		trim: true,
 	},
+	businessSecondPhone: {
+		type: String,
+	},
 	businessWebsite: {
 		type: String,
 		trim: true,
@@ -78,7 +81,11 @@ const directorySchema = new Schema({
 	tags: [{
 		type: Schema.Types.ObjectId,
 		ref: "Tag"
-	}]
+	}],
+	views: {
+		type: Number,
+		default: 0
+	}
 }, {
 	timestamps: true,
 });

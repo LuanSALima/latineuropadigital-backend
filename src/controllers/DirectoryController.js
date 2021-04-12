@@ -61,6 +61,42 @@ class DirectoryController {
 				query.skip((page-1)*results);
 			}
 
+			if(request.query.views) {
+				switch(request.query.views) {
+					case 'daily' :
+						var today = new Date();
+						var yesterday = new Date();
+	  					yesterday.setDate(today.getDate()-1);
+
+	  					query.where({createdAt: {"$gte": yesterday, "$lt": today}}).sort({views: 'desc'});
+						break;
+					case 'weekly' :
+						var today = new Date();
+						var lastWeek = new Date();
+	  					lastWeek.setDate(today.getDate()-7);
+
+	  					query.where({createdAt: {"$gte": lastWeek, "$lt": today}}).sort({views: 'desc'});
+						break;
+					case 'monthly' :
+						var today = new Date();
+						var lastMonth = new Date();
+	  					lastMonth.setDate(1);
+	  					lastMonth.setMonth(today.getMonth());
+	  					lastMonth.setHours(0);
+	  					lastMonth.setMinutes(0);
+
+	  					query.where({createdAt: {"$gte": lastMonth, "$lt": today}}).sort({views: 'desc'});
+						break;
+					case 'allTime' :
+	  					query.sort({views: 'desc'});
+						break;
+					default:
+						throw new Error(request.query.views+" no es una fecha valida");
+				}
+			} else {
+				query.sort({createdAt: 'desc'});
+			}
+
 			query.lean(); //Transform the Mongoose Documents into a plain javascript object. That way we can set the property the way we want
 			const directories = await query.exec();
 
@@ -306,6 +342,7 @@ class DirectoryController {
 				businessDescription,
 				contactName,
 				contactPhone,
+				businessSecondPhone,
 				contactEmail,
 				contactRole
 			} = request.body;
@@ -355,6 +392,7 @@ class DirectoryController {
 				businessDescription,
 				contactName,
 				contactPhone,
+				businessSecondPhone,
 				contactEmail,
 				contactRole,
 				imagePath : '/images/directories/'+imageName,
@@ -392,6 +430,12 @@ class DirectoryController {
 				if(!jwt.checkToken(request)) {
 					throw new Error("Directorio no encontrado");
 				}
+			}
+
+			//Se não estiver logado
+			if(!jwt.checkToken(request)) {
+				directory.views = directory.views + 1;
+				directory.save({ validateBeforeSave: false });
 			}
 
 			const directoryJSON = directory.toJSON();
@@ -432,6 +476,7 @@ class DirectoryController {
 				businessDescription,
 				contactName,
 				contactPhone,
+				businessSecondPhone,
 				contactEmail,
 				contactRole,
 				status
@@ -502,6 +547,7 @@ class DirectoryController {
 			directory.businessDescription = businessDescription;
 			directory.contactName = contactName;
 			directory.contactPhone = contactPhone;
+			directory.businessSecondPhone = businessSecondPhone;
 			directory.contactEmail = contactEmail;
 			directory.contactRole = contactRole;
 			directory.status = status;
