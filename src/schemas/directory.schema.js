@@ -36,6 +36,9 @@ const directorySchema = new Schema({
 		required: [true, 'Es necesario informar al número de teléfono de la empresa'],
 		trim: true,
 	},
+	businessSecondPhone: {
+		type: String,
+	},
 	businessWebsite: {
 		type: String,
 		trim: true,

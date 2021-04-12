@@ -7,10 +7,50 @@ let Notice = require('../schemas/notice.schema');
 
 const handleErrors = require('../helpers/error-handler');
 
+async function sortPositions(oldPosition, newPosition, featuredUpdated) {
+	const allFeatureds = await Featured.find().sort({position: 'asc'});
+
+    for(const actualFeatured of allFeatureds) {
+    	const actualFeaturedPosition = actualFeatured.position;
+
+    	if(actualFeaturedPosition.toString() === newPosition.toString() && actualFeatured._id.toString() !== featuredUpdated._id.toString()) {
+    		if(actualFeaturedPosition > oldPosition) {
+    			actualFeatured.position = actualFeaturedPosition-1;
+    		} else {
+    			actualFeatured.position = actualFeaturedPosition+1;
+    		}
+    	} else {
+    		if(actualFeaturedPosition === oldPosition && actualFeatured._id.toString() === featuredUpdated._id.toString()) {
+    			actualFeatured.position = newPosition;
+    		} else {
+    			if(actualFeaturedPosition < oldPosition && actualFeaturedPosition > newPosition) {
+		    		actualFeatured.position = actualFeaturedPosition+1;
+		    	}
+		    	if(actualFeaturedPosition > oldPosition && actualFeaturedPosition < newPosition) {
+		    		actualFeatured.position = actualFeaturedPosition-1;
+		    	}
+    		}
+    	}
+    	actualFeatured.save();
+    }
+}
+
 class FeaturedController {
 	async list(request, response) {
 		try {
-			const featureds = await Featured.find().sort({position: 'asc'}).populate('post').lean();
+
+			let featureds = [];
+
+			if(request.query.type) {
+				featureds = await Featured.find({
+					$or: [
+						{postType: {'$regex' : request.query.type, '$options' : 'i' }},
+						{prioritized: 'true'}
+					]	
+				}).sort({position: 'asc'}).populate('post').lean();
+			}else {
+				featureds = await Featured.find().sort({position: 'asc'}).populate('post').lean();
+			}
 
 			for(const featured of featureds) {
 				if(featured.post) {
@@ -142,31 +182,7 @@ class FeaturedController {
 
 			const oldPosition = featured.position;
 
-			const allFeatureds = await Featured.find().sort({position: 'asc'});
-
-		    for(const actualFeatured of allFeatureds) {
-		    	const actualFeaturedPosition = actualFeatured.position;
-
-		    	if(actualFeaturedPosition === newPosition) {
-		    		if(actualFeaturedPosition > oldPosition) {
-		    			actualFeatured.position = actualFeaturedPosition-1;
-		    		} else {
-		    			actualFeatured.position = actualFeaturedPosition+1;
-		    		}
-		    	} else {
-		    		if(actualFeaturedPosition === oldPosition) {
-		    			actualFeatured.position = newPosition;
-		    		} else {
-		    			if(actualFeaturedPosition < oldPosition && actualFeaturedPosition > newPosition) {
-				    		actualFeatured.position = actualFeaturedPosition+1;
-				    	}
-				    	if(actualFeaturedPosition > oldPosition && actualFeaturedPosition < newPosition) {
-				    		actualFeatured.position = actualFeaturedPosition-1;
-				    	}
-		    		}
-		    	}
-		    	actualFeatured.save();
-		    }
+			await sortPositions(oldPosition, newPosition, featured);
 
 			return response.json({
 				success: true,
@@ -179,18 +195,23 @@ class FeaturedController {
 
 	async update(request, response) {
 		try {
-			const {position, post, postType} = request.body;
+			const {position, post, postType, prioritized} = request.body;
 
 			const featured = await Featured.findByIdAndUpdate(request.params.id, {
 	  			'$set': {
 	  				position,
 	  				post,
-	  				postType
+	  				postType,
+	  				prioritized
 	  			}
   			}, {
-        		new: true, // {new: false} Para retornar a versão antiga do bcd, 
+        		new: false, // {new: false} Para retornar a versão antiga do bcd, 
        			runValidators: true, // {runValidators: true} Para validar os campos antes do update
       		});
+
+      		if(featured.position !== position) {
+      			await sortPositions(featured.position, position, featured);
+      		}
 
 			if(!featured) {
 				throw new Error("Destacado no encontrado");
@@ -198,7 +219,7 @@ class FeaturedController {
 
 			return response.json({
 				success: true,
-				featured
+				message: 'Destacado cambiado con éxito'
 			});
 		} catch(error) {
 			return response.status(400).json(handleErrors(error));

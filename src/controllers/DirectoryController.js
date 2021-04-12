@@ -342,6 +342,7 @@ class DirectoryController {
 				businessDescription,
 				contactName,
 				contactPhone,
+				businessSecondPhone,
 				contactEmail,
 				contactRole
 			} = request.body;
@@ -391,6 +392,7 @@ class DirectoryController {
 				businessDescription,
 				contactName,
 				contactPhone,
+				businessSecondPhone,
 				contactEmail,
 				contactRole,
 				imagePath : '/images/directories/'+imageName,
@@ -474,6 +476,7 @@ class DirectoryController {
 				businessDescription,
 				contactName,
 				contactPhone,
+				businessSecondPhone,
 				contactEmail,
 				contactRole,
 				status
@@ -544,6 +547,7 @@ class DirectoryController {
 			directory.businessDescription = businessDescription;
 			directory.contactName = contactName;
 			directory.contactPhone = contactPhone;
+			directory.businessSecondPhone = businessSecondPhone;
 			directory.contactEmail = contactEmail;
 			directory.contactRole = contactRole;
 			directory.status = status;

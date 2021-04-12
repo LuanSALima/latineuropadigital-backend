@@ -17,6 +17,11 @@ const featuredSchema = new Schema({
 		type: String,
 		required: [true, 'Es necesario informar el tipo de publicación destacada'],
 		enum: ['Notice', 'Directory', 'Event', 'Course']
+	},
+	prioritized: {
+		type: String,
+		enum: ['true', 'false'],
+		default: 'false'
 	}
 });
 
