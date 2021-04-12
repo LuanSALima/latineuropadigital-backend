@@ -35,7 +35,7 @@ router.get("/notices/tags", NoticeController.tagsUsed);
 
 router.get("/directory/list", DirectoryController.list);
 router.get("/directory/:id", DirectoryController.find);
-router.post("/directory/create", authorized(), DirectoryController.create);
+router.post("/directory/create", DirectoryController.create);
 router.put("/directory/:id", authorized(), DirectoryController.update);
 router.delete("/directory/:id", authorized(), DirectoryController.delete);
 
@@ -46,7 +46,7 @@ router.get("/directories/:status", authorized(), DirectoryController.listByStatu
 
 router.get("/event/list", EventController.list);
 router.get("/event/:id", EventController.find);
-router.post("/event/create", authorized(), EventController.create);
+router.post("/event/create", EventController.create);
 router.put("/event/:id", authorized(), EventController.update);
 router.delete("/event/:id", authorized(), EventController.delete);
 
