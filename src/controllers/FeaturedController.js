@@ -10,7 +10,44 @@ const handleErrors = require('../helpers/error-handler');
 class FeaturedController {
 	async list(request, response) {
 		try {
-			const featureds = await Featured.find().sort({position: 'asc'}).populate('post');
+			const featureds = await Featured.find().sort({position: 'asc'}).populate('post').lean();
+
+			for(const featured of featureds) {
+				if(featured.post) {
+					if(featured.post.status) {
+						if(featured.post.status !== 'accepted'){
+							featured.post=null;
+						}
+					}
+				}
+			}
+
+			if (featureds.length === 0) {
+				throw new Error("No a destacados registrados");
+			}
+
+			return response.status(200).json({
+				success: true,
+				featureds
+			});
+		} catch(error) {
+			return response.status(400).json(handleErrors(error));
+		}
+	}
+
+	async listAll(request, response) {
+		try {
+			const featureds = await Featured.find().sort({position: 'asc'}).populate('post').lean();
+
+			for(const featured of featureds) {
+				if(featured.post) {
+					if(featured.post.status) {
+						if(featured.post.status !== 'accepted'){
+							featured.isPendent = true;
+						}
+					}
+				}
+			}
 
 			if (featureds.length === 0) {
 				throw new Error("No a destacados registrados");

@@ -98,6 +98,7 @@ router.put("/featured/:id", authorized(), FeaturedController.update);
 router.put("/featured/:id/position", authorized(), FeaturedController.changePosition);
 router.delete("/featured/:id", authorized(), FeaturedController.delete);
 
+router.get("/featureds/all", authorized(), FeaturedController.listAll);
 
 router.use("/", (req, res, next) => {
   res.status("404").json({success: false, message: "Route not found"});
