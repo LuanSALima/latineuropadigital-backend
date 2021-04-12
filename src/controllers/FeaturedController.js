@@ -38,7 +38,6 @@ async function sortPositions(oldPosition, newPosition, featuredUpdated) {
 class FeaturedController {
 	async list(request, response) {
 		try {
-
 			let featureds = [];
 
 			if(request.query.type) {
