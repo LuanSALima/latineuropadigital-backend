@@ -3,6 +3,8 @@ const validator = require('validator');
 
 const fileSystem = require('fs');
 
+const Featured = require('./featured.schema');
+
 const Schema = mongoose.Schema;
 
 const noticeSchema = new Schema({
@@ -53,9 +55,14 @@ noticeSchema.pre("remove", async function (next) {
 	*/
 	try {
 		fileSystem.unlinkSync(__basedir+"/public"+this.imagePath);
-	} catch (error) {
+	} catch (error) {}
 
+	const thisFeatured = await Featured.findOne({post: this._id});
+
+	if(thisFeatured) {
+		await thisFeatured.remove();
 	}
+
   	next();
 });
 

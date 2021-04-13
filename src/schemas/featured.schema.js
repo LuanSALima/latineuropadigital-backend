@@ -25,6 +25,21 @@ const featuredSchema = new Schema({
 	}
 });
 
+featuredSchema.pre('remove', async function(next) {
+	const deletePosition = this.position;
+
+    const allFeatureds = await Featured.find().sort({position: 'asc'});
+
+    for(const actualFeatured of allFeatureds) {
+    	if(actualFeatured.position > deletePosition) {
+    		actualFeatured.position = actualFeatured.position-1;
+    		await actualFeatured.save();
+    	}
+    }
+
+    next();
+});
+
 const Featured = mongoose.model('Featured', featuredSchema);
 
 module.exports = Featured;

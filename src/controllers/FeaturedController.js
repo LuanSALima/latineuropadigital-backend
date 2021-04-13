@@ -38,18 +38,32 @@ async function sortPositions(oldPosition, newPosition, featuredUpdated) {
 class FeaturedController {
 	async list(request, response) {
 		try {
-			let featureds = [];
+			let query = Featured.find();;
 
 			if(request.query.type) {
-				featureds = await Featured.find({
+				query = Featured.find({
 					$or: [
 						{postType: {'$regex' : request.query.type, '$options' : 'i' }},
 						{prioritized: 'true'}
 					]	
-				}).sort({position: 'asc'}).populate('post').lean();
-			}else {
-				featureds = await Featured.find().sort({position: 'asc'}).populate('post').lean();
+				});
 			}
+
+			query.sort({position: 'asc'}).populate('post').lean();
+
+			let results = 10;
+			if(request.query.results) {
+				results = parseInt(request.query.results);
+				if(!Number.isInteger(results)) {
+					throw new Error("El número de resultados debe ser un número");
+				}
+				if(results < 1) {
+					throw new Error("El número de resultados debe ser un número mayor que 0");
+				}
+			}
+			query.limit(results);
+
+			const featureds = await query.exec();
 
 			for(const featured of featureds) {
 				if(featured.post) {
@@ -233,18 +247,7 @@ class FeaturedController {
 		        throw new Error("¡El destacado no existe!");
 		    }
 
-		    const deletePosition = featured.position;
-
 		    await featured.remove();
-
-		    const allFeatureds = await Featured.find().sort({position: 'asc'});
-
-		    for(const actualFeatured of allFeatureds) {
-		    	if(actualFeatured.position > deletePosition) {
-		    		actualFeatured.position = actualFeatured.position-1;
-		    		await actualFeatured.save();
-		    	}
-		    }
 
 			return response.json({
 				success: true,
