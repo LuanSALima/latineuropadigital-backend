@@ -184,6 +184,7 @@ class FeaturedController {
 			}
 
 			const newPosition = parseInt(request.body.position);
+			const oldPosition = featured.position;
 
 			if(!Number.isInteger(newPosition)) {
 				throw new Error("La posición debe ser un número");
@@ -193,9 +194,17 @@ class FeaturedController {
 				throw new Error("La página debe ser un número mayor que 0");
 			}
 
-			const oldPosition = featured.position;
+			const featuredAtPosition = await Featured.findOne({position: newPosition});
 
-			await sortPositions(oldPosition, newPosition, featured);
+			if(!featuredAtPosition) {
+				throw new Error("No hay destacado en esta posición");
+			}
+
+			featuredAtPosition.position = oldPosition;
+			featured.position = newPosition;
+
+			await featuredAtPosition.save();
+			await featured.save();
 
 			return response.json({
 				success: true,
