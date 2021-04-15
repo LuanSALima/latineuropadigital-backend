@@ -14,6 +14,7 @@ const FeaturedController = require('./controllers/FeaturedController');
 const Role = require('./helpers/roles');
 const authorized = require('./middlewares/authorize');
 
+router.get("/auth/check", authorized(), AuthController.isLogged);
 router.post("/auth/authenticate", AuthController.authenticate);
 //router.post("/auth/signup", AuthController.signUp);
 

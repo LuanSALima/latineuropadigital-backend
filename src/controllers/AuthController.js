@@ -36,6 +36,18 @@ class AuthController {
 	    	return response.status(400).json(handleErrors(error));
 	    }
 	}
+
+	async isLogged(request, response) {
+		try {
+			return response
+				.status(200)
+				.json({
+					success: true
+				});
+	    } catch (error) {
+	    	return response.status(400).json(handleErrors(error));
+	    }
+	}
 }
 
 module.exports = new AuthController();
