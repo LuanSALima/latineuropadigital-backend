@@ -96,6 +96,7 @@ router.get("/featured/:id", FeaturedController.find);
 router.post("/featured/create", authorized(), FeaturedController.create);
 router.put("/featured/:id", authorized(), FeaturedController.update);
 router.put("/featured/:id/position", authorized(), FeaturedController.changePosition);
+router.put("/featured/:id/prioritized", authorized(), FeaturedController.changePrioritized);
 router.delete("/featured/:id", authorized(), FeaturedController.delete);
 
 router.get("/featureds/all", authorized(), FeaturedController.listAll);

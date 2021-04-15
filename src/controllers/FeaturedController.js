@@ -233,6 +233,31 @@ class FeaturedController {
 		}
 	}
 
+	async changePrioritized(request, response) {
+		try {
+			const featured = await Featured.findById(request.params.id);
+
+			if(!featured) {
+				throw new Error("Destacado no encontrado");
+			}
+
+			if(featured.prioritized === 'true') {
+				featured.prioritized = 'false';
+			} else {
+				featured.prioritized = 'true';
+			}
+
+			await featured.save();
+
+			return response.json({
+				success: true,
+				message: 'Prioridad destacada actualizada'
+			});
+		} catch(error) {
+			return response.status(400).json(handleErrors(error));
+		}
+	}
+
 	async update(request, response) {
 		try {
 			const {position, post, postType, prioritized} = request.body;
