@@ -184,6 +184,11 @@ class JobController {
 	    		jobTypes.push(jobType.title);
 	    	}
 	    	jobJSON.jobTypes = jobTypes; //Instead of sending a array of objects, send a array of strings
+
+	    	return response.json({
+				success: true,
+				job: jobJSON
+			});
 			*/
 
 			const job = await Job.findById(request.params.id);
@@ -194,7 +199,7 @@ class JobController {
 
 			return response.json({
 				success: true,
-				job: jobJSON
+				job
 			});
 		} catch (error) {
 			return response.status(400).json(handleErrors(error));
