@@ -83,14 +83,14 @@ router.delete("/tag/:id", authorized(), TagsController.delete);
 //router.get("/tags/wipe", TagsController.deleteAll);
 router.get("/tags/:type", TagsController.listByType);
 
-
+/*
 router.get("/jobtype/list", JobTypeController.list);
 router.get("/jobtype/:id", JobTypeController.find);
 router.post("/jobtype/create", authorized(), JobTypeController.create);
 router.put("/jobtype/:id", authorized(), JobTypeController.update);
 router.delete("/jobtype/:id", authorized(), JobTypeController.delete);
 //router.get("/tags/wipe", JobTypeController.deleteAll);
-
+*/
 
 router.get("/featured/list", FeaturedController.list);
 router.get("/featured/:id", FeaturedController.find);
