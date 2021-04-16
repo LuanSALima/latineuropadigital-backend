@@ -14,6 +14,7 @@ const FeaturedController = require('./controllers/FeaturedController');
 const Role = require('./helpers/roles');
 const authorized = require('./middlewares/authorize');
 
+router.get("/auth/check", authorized(), AuthController.isLogged);
 router.post("/auth/authenticate", AuthController.authenticate);
 //router.post("/auth/signup", AuthController.signUp);
 
@@ -82,20 +83,21 @@ router.delete("/tag/:id", authorized(), TagsController.delete);
 //router.get("/tags/wipe", TagsController.deleteAll);
 router.get("/tags/:type", TagsController.listByType);
 
-
+/*
 router.get("/jobtype/list", JobTypeController.list);
 router.get("/jobtype/:id", JobTypeController.find);
 router.post("/jobtype/create", authorized(), JobTypeController.create);
 router.put("/jobtype/:id", authorized(), JobTypeController.update);
 router.delete("/jobtype/:id", authorized(), JobTypeController.delete);
 //router.get("/tags/wipe", JobTypeController.deleteAll);
-
+*/
 
 router.get("/featured/list", FeaturedController.list);
 router.get("/featured/:id", FeaturedController.find);
 router.post("/featured/create", authorized(), FeaturedController.create);
 router.put("/featured/:id", authorized(), FeaturedController.update);
 router.put("/featured/:id/position", authorized(), FeaturedController.changePosition);
+router.put("/featured/:id/prioritized", authorized(), FeaturedController.changePrioritized);
 router.delete("/featured/:id", authorized(), FeaturedController.delete);
 
 router.get("/featureds/all", authorized(), FeaturedController.listAll);

@@ -38,7 +38,7 @@ async function sortPositions(oldPosition, newPosition, featuredUpdated) {
 class FeaturedController {
 	async list(request, response) {
 		try {
-			let query = Featured.find();;
+			let query = Featured.find();
 
 			if(request.query.type) {
 				query = Featured.find({
@@ -49,7 +49,7 @@ class FeaturedController {
 				});
 			}
 
-			query.sort({position: 'asc'}).populate('post').lean();
+			query.sort({position: 'asc'}).populate({ path: 'post', populate: { path: 'tags', select: 'title -_id' } });
 
 			let results = 10;
 			if(request.query.results) {
@@ -63,6 +63,8 @@ class FeaturedController {
 			}
 			query.limit(results);
 
+			query.lean();
+
 			const featureds = await query.exec();
 
 			for(const featured of featureds) {
@@ -73,6 +75,22 @@ class FeaturedController {
 						}
 					}
 				}
+				
+				if(featured.post) {
+					if(featured.post.tags) {
+						const tags = [];
+				    	for(const tag of featured.post.tags) {
+				    		tags.push(tag.title);
+				    	}
+
+				    	if(featured.post.tags) {
+				    		featured.post.tags = tags; //Instead of sending a array of objects, send a array of strings
+				    	} else {
+				    		featured.post.tags = ['Etiquetas excluidas'];
+				    	}
+					}
+				}
+				
 			}
 
 			if (featureds.length === 0) {
@@ -209,6 +227,31 @@ class FeaturedController {
 			return response.json({
 				success: true,
 				message: 'Posición destacada actualizada'
+			});
+		} catch(error) {
+			return response.status(400).json(handleErrors(error));
+		}
+	}
+
+	async changePrioritized(request, response) {
+		try {
+			const featured = await Featured.findById(request.params.id);
+
+			if(!featured) {
+				throw new Error("Destacado no encontrado");
+			}
+
+			if(featured.prioritized === 'true') {
+				featured.prioritized = 'false';
+			} else {
+				featured.prioritized = 'true';
+			}
+
+			await featured.save();
+
+			return response.json({
+				success: true,
+				message: 'Prioridad destacada actualizada'
 			});
 		} catch(error) {
 			return response.status(400).json(handleErrors(error));

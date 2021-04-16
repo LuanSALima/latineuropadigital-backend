@@ -29,10 +29,16 @@ const jobSchema = new Schema({
 		enum: ['accepted', 'pendent'],
 		required: [true, 'Es necesario informar cuál es el estado de la oportunidad']
 	},
+	/*
 	jobTypes: [{
 		type: Schema.Types.ObjectId,
 		ref: "JobType"
 	}]
+	*/
+	jobTypes: {
+		type: [String],
+		required: [true, 'É necessário informar os tipos de trabalhos']
+	}
 }, {
 	timestamps: true,
 });
