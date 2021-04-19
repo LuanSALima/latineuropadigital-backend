@@ -38,6 +38,9 @@ const jobSchema = new Schema({
 	jobTypes: {
 		type: [String],
 		required: [true, 'É necessário informar os tipos de trabalhos']
+	},
+	link: {
+		type: String
 	}
 }, {
 	timestamps: true,

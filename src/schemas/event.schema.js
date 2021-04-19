@@ -87,6 +87,9 @@ const eventSchema = new Schema({
 		type: Schema.Types.ObjectId,
 		ref: "Tag"
 	}],
+	link: {
+		type: String
+	},
 	views: {
 		type: Number,
 		default: 0
