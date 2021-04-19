@@ -103,7 +103,7 @@ class JobController {
 
 	async create(request, response) {
 		try {
-			const { professionalName, professionalContact, title, description, jobTypes } = request.body;
+			const { professionalName, professionalContact, title, description, jobTypes, link } = request.body;
 
 			/*
 		    if(typeof(jobTypes) === "undefined") {
@@ -154,7 +154,8 @@ class JobController {
 				title,
 				description,
 				status: 'pendent',
-				jobTypes
+				jobTypes,
+				link
 			});
 			
 
@@ -208,7 +209,7 @@ class JobController {
 
 	async update(request, response) {
 		try {
-			const { professionalName, professionalContact, title, description, status, jobTypes } = request.body;
+			const { professionalName, professionalContact, title, description, status, jobTypes, link } = request.body;
 
 			const job = await Job.findById(request.params.id);
 
@@ -268,6 +269,7 @@ class JobController {
 			job.description = description;
 			job.status = status;
 			job.jobTypes = jobTypes;
+			job.link = link;
 
 			await job.save();
 

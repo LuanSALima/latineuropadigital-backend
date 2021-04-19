@@ -344,7 +344,8 @@ class EventController {
 				contactName,
 				contactPhone,
 				contactEmail,
-				contactRole
+				contactRole,
+				link
 			} = request.body;
 
 			let {tags} = request.body;
@@ -397,7 +398,8 @@ class EventController {
 				contactRole,
 				imagePath: '/images/events/'+imageName,
 				status: 'pendent',
-				tags: idTags
+				tags: idTags,
+				link
 			});
 
 		    //move the image to the path 'imagePath'
@@ -479,7 +481,8 @@ class EventController {
 				contactPhone,
 				contactEmail,
 				contactRole,
-				status
+				status,
+				link
 			} = request.body;
 
 			let {tags} = request.body;
@@ -552,6 +555,7 @@ class EventController {
 			event.contactRole = contactRole;
 			event.status = status;
 			event.tags = idTags;
+			event.link = link;
 
 			await event.save();
 
