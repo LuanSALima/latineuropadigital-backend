@@ -61,13 +61,14 @@ class FeaturedController {
 					throw new Error("El número de resultados debe ser un número mayor que 0");
 				}
 			}
-			query.limit(results);
-
 			query.lean();
 
-			const featureds = await query.exec();
+			const bcdFeatureds = await query.exec();
 
-			for(const featured of featureds) {
+			const featureds = [];
+			let qntFeatureds = 0;
+
+			for(const featured of bcdFeatureds) {
 				if(featured.post) {
 					if(featured.post.status) {
 						if(featured.post.status !== 'accepted'){
@@ -88,6 +89,12 @@ class FeaturedController {
 				    	} else {
 				    		featured.post.tags = ['Etiquetas excluidas'];
 				    	}
+					}
+					featureds.push(featured);
+					qntFeatureds++;
+
+					if(qntFeatureds === results) {
+						break;
 					}
 				}
 				
