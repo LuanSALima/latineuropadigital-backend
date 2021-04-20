@@ -70,6 +70,7 @@ router.post("/job/create", JobController.create);
 router.put("/job/:id", authorized(), JobController.update);
 router.delete("/job/:id", authorized(), JobController.delete);
 
+router.get("/jobs/types", JobController.jobTypesUsed);
 router.get("/jobs/all", authorized(), JobController.listAll);
 router.get("/jobs/:status", authorized(), JobController.listByStatus);
 //router.get("/jobs/wipe", JobController.deleteAll);

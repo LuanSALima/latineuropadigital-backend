@@ -22,15 +22,64 @@ class JobController {
 		    	job.jobTypes = jobTypes;
 		    }
 		    */
-		    const jobs = await Job.find({status: 'accepted'});
+		    const query = Job.find({status : 'accepted'});
+
+		    query.sort({createdAt: 'desc'});
+
+		    if(request.query.types) {
+				const types = request.query.types;
+
+				query.where('jobTypes').all(types.split(','));
+			}
+
+		    let results = 30;
+
+			if(request.query.results) {
+				results = parseInt(request.query.results);
+				if(!Number.isInteger(results)) {
+					throw new Error("El número de resultados debe ser un número");
+				}
+				if(results < 1) {
+					throw new Error("El número de resultados debe ser un número mayor que 0");
+				}
+			}
+			query.limit(results);
+
+			if(request.query.page) {
+				const page = parseInt(request.query.page);
+				if(!Number.isInteger(page)) {
+					throw new Error("La página debe ser un número");
+				}
+				if(page < 1) {
+					throw new Error("La página debe ser un número mayor que 0");
+				}
+				query.skip((page-1)*results);
+			}
+
+			const jobs = await query.exec();
 
 		    if (jobs.length === 0) {
-		        throw new Error("¡No hay trabajos aceptados en la base de datos!");
+		    	if(request.query.types) {
+		    		throw new Error("No hay trabajos que tengan estos tipos seleccionados");
+		    	} else if (request.query.page){
+		    		throw new Error("Esta página no tiene trabajos aceptados");
+		    	} else {
+		    		throw new Error("¡No hay trabajos aceptados en la base de datos!");
+		    	}
+		    }
+
+		    let totalJobs = 0;
+
+		    if(request.query.types) {
+		    	totalJobs = await Job.countDocuments({status: 'accepted'}).where('jobTypes').all(request.query.types.split(','));
+		    } else {
+		    	totalJobs = await Job.countDocuments({status: 'accepted'});
 		    }
 
 			return response.status(200).json({
 				success: true,
-				jobs
+				jobs,
+				totalJobs
 			});
 		} catch (error) {
 			return response.status(400).json(handleErrors(error));
@@ -86,15 +135,50 @@ class JobController {
 		    	job.jobTypes = jobTypes;
 		    }
 		    */
-		    const jobs = await Job.find({status: request.params.status});
+		    const query = Job.find({status: request.params.status});
+
+		    query.sort({createdAt: 'desc'});
+
+		    let results = 30;
+
+			if(request.query.results) {
+				results = parseInt(request.query.results);
+				if(!Number.isInteger(results)) {
+					throw new Error("El número de resultados debe ser un número");
+				}
+				if(results < 1) {
+					throw new Error("El número de resultados debe ser un número mayor que 0");
+				}
+			}
+			query.limit(results);
+
+			if(request.query.page) {
+				const page = parseInt(request.query.page);
+				if(!Number.isInteger(page)) {
+					throw new Error("La página debe ser un número");
+				}
+				if(page < 1) {
+					throw new Error("La página debe ser un número mayor que 0");
+				}
+				query.skip((page-1)*results);
+			}
+
+			const jobs = await query.exec();
 
 		    if (jobs.length === 0) {
-		        throw new Error("¡No hay trabajos "+(request.params.status)+" en la base de datos!");
+				if (request.query.page){
+		    		throw new Error("Esta página no tiene trabajos "+(request.params.status));
+		    	} else {
+		    		throw new Error("¡No hay trabajos "+(request.params.status)+" en la base de datos!");
+		    	}
 		    }
+
+		    const totalJobs = await Job.countDocuments({status: request.params.status});
 
 			return response.status(200).json({
 				success: true,
-				jobs
+				jobs,
+				totalJobs
 			});
 		} catch (error) {
 			return response.status(400).json(handleErrors(error));
@@ -164,6 +248,20 @@ class JobController {
 				job
 			});
 
+		} catch (error) {
+			return response.status(400).json(handleErrors(error));
+		}
+	}
+
+	async jobTypesUsed(request, response) {
+		try {
+			const usedTypes = await Job.distinct('jobTypes');
+
+			return response.status(200).json({
+				success: true,
+				jobTypes: usedTypes
+			});
+			
 		} catch (error) {
 			return response.status(400).json(handleErrors(error));
 		}
