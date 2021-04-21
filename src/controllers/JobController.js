@@ -29,7 +29,7 @@ class JobController {
 		    if(request.query.types) {
 				const types = request.query.types;
 
-				query.where('jobTypes').all(types.split(','));
+				query.where('jobTypes').all(types);
 			}
 
 		    let results = 30;
@@ -71,7 +71,7 @@ class JobController {
 		    let totalJobs = 0;
 
 		    if(request.query.types) {
-		    	totalJobs = await Job.countDocuments({status: 'accepted'}).where('jobTypes').all(request.query.types.split(','));
+		    	totalJobs = await Job.countDocuments({status: 'accepted'}).where('jobTypes').all(request.query.types);
 		    } else {
 		    	totalJobs = await Job.countDocuments({status: 'accepted'});
 		    }
