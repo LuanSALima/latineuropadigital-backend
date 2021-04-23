@@ -40,6 +40,12 @@ const noticeSchema = new Schema({
 		type: Schema.Types.ObjectId,
 		ref: "Tag"
 	}],
+	/*
+	url: {
+		type: String,
+		required: [true, 'Es necessario informar a url']
+	},
+	*/
 	views: {
 		type: Number,
 		default: 0

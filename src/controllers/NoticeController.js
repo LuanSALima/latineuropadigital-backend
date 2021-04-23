@@ -9,6 +9,8 @@ const jwt = require('../helpers/jwt');
 
 const fileSystem = require('fs');
 
+const slugify = require('../helpers/slugify');
+
 class NoticeController {
 	async list(request, response) {
 		try {
@@ -208,6 +210,8 @@ class NoticeController {
 		    //__basedir is a Global Variable that we assigned at our server.js that return the root path of the project
 		    const imageName = `${Date.now()}-${image.name}`;
 		    const imagePath = `${__basedir}/public/images/notices/${imageName}`;
+
+		    console.log(slugify(title));
 
 			const notice = await Notice.create({
 				author: userLogged,

@@ -27,6 +27,7 @@ router.get("/createFirstAdmin", UserController.createAdmin); /*Única forma de c
 
 
 router.get("/notice/list", NoticeController.list);
+//router.get("/notice/:url", NoticeController.find);
 router.get("/notice/:id", NoticeController.find);
 router.post("/notice/create", authorized(), NoticeController.create);
 router.put("/notice/:id", authorized(), NoticeController.update);
