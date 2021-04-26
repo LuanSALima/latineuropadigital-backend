@@ -13,7 +13,17 @@ const port = process.env.PORT || 8080;
 //assigning a variable that is the root path of the project
 global.__basedir = __dirname;
 
-app.use(cors());
+if(process.env.CLIENT_URL) {
+
+	app.use(cors({
+		origin: process.env.CLIENT_URL,
+	    optionsSuccessStatus: 200 // For legacy browser support
+	}));
+
+} else {
+	console.log('CONFIGURATION ERROR: URL CLIENT not configured');
+}
+
 app.use(express.json());
 
 app.use(fileUpload());
