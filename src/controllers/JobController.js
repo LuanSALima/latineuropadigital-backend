@@ -255,7 +255,7 @@ class JobController {
 
 	async jobTypesUsed(request, response) {
 		try {
-			const usedTypes = await Job.distinct('jobTypes');
+			const usedTypes = await Job.find({status : 'accepted'}).distinct('jobTypes');
 
 			return response.status(200).json({
 				success: true,
